@@ -191,7 +191,7 @@ async function createChannel() {
           {{ t('INBOX_MGMT.IMAP.CREATE_HELP') }}
         </p>
 
-        <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
+        <div class="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2">
           <Input
             v-model="state.imapAddress"
             :label="t('INBOX_MGMT.IMAP.ADDRESS.LABEL')"
@@ -199,27 +199,14 @@ async function createChannel() {
             :message-type="fieldState('imapAddress')"
             @blur="v$.imapAddress.$touch"
           />
-          <div>
-            <Input
-              v-model="state.imapPort"
-              type="number"
-              :label="t('INBOX_MGMT.IMAP.PORT.LABEL')"
-              :placeholder="t('INBOX_MGMT.IMAP.PORT.PLACE_HOLDER')"
-              :message-type="fieldState('imapPort')"
-              @blur="v$.imapPort.$touch"
-            />
-            <label
-              for="imap-enable-ssl"
-              class="flex items-center gap-2 -mt-1 mb-4 text-sm font-medium text-n-slate-12"
-            >
-              <input
-                id="imap-enable-ssl"
-                v-model="state.imapEnableSSL"
-                type="checkbox"
-              />
-              {{ t('INBOX_MGMT.IMAP.ENABLE_SSL') }}
-            </label>
-          </div>
+          <Input
+            v-model="state.imapPort"
+            type="number"
+            :label="t('INBOX_MGMT.IMAP.PORT.LABEL')"
+            :placeholder="t('INBOX_MGMT.IMAP.PORT.PLACE_HOLDER')"
+            :message-type="fieldState('imapPort')"
+            @blur="v$.imapPort.$touch"
+          />
           <Input
             v-model="state.imapLogin"
             :label="t('INBOX_MGMT.IMAP.LOGIN.LABEL')"
@@ -237,7 +224,7 @@ async function createChannel() {
           />
         </div>
 
-        <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
+        <div class="grid grid-cols-1 gap-x-4 gap-y-4 mt-4 md:grid-cols-2">
           <label class="flex flex-col gap-1">
             <span class="text-heading-3 text-n-slate-12">
               {{ t('INBOX_MGMT.IMAP.AUTH_MECHANISM') }}
@@ -246,6 +233,17 @@ async function createChannel() {
               v-model="state.imapAuthentication"
               :options="selectOptions(IMAP_AUTH_OPTIONS)"
             />
+            <label
+              for="imap-enable-ssl"
+              class="flex items-center gap-2 mt-2 text-sm font-medium text-n-slate-12"
+            >
+              <input
+                id="imap-enable-ssl"
+                v-model="state.imapEnableSSL"
+                type="checkbox"
+              />
+              {{ t('INBOX_MGMT.IMAP.ENABLE_SSL') }}
+            </label>
           </label>
           <label class="flex flex-col gap-1">
             <span class="text-heading-3 text-n-slate-12">
@@ -267,7 +265,7 @@ async function createChannel() {
           {{ t('INBOX_MGMT.SMTP.CREATE_HELP') }}
         </p>
 
-        <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
+        <div class="grid grid-cols-1 gap-x-4 gap-y-4 md:grid-cols-2">
           <Input
             v-model="state.smtpAddress"
             :label="t('INBOX_MGMT.SMTP.ADDRESS.LABEL')"
@@ -305,10 +303,19 @@ async function createChannel() {
             :message-type="fieldState('smtpDomain')"
             @blur="v$.smtpDomain.$touch"
           />
+          <label class="flex flex-col gap-1">
+            <span class="text-heading-3 text-n-slate-12">
+              {{ t('INBOX_MGMT.SMTP.AUTH_MECHANISM') }}
+            </span>
+            <Select
+              v-model="state.smtpAuthentication"
+              :options="selectOptions(SMTP_AUTH_OPTIONS)"
+            />
+          </label>
         </div>
 
-        <div class="grid grid-cols-1 gap-x-4 md:grid-cols-2">
-          <label class="flex flex-col gap-1 mb-4">
+        <div class="grid grid-cols-1 gap-x-4 gap-y-4 mt-4 md:grid-cols-2">
+          <label class="flex flex-col gap-1">
             <span class="text-heading-3 text-n-slate-12">
               {{ t('INBOX_MGMT.SMTP.ENCRYPTION') }}
             </span>
@@ -320,22 +327,13 @@ async function createChannel() {
               ]"
             />
           </label>
-          <label class="flex flex-col gap-1 mb-4">
+          <label class="flex flex-col gap-1">
             <span class="text-heading-3 text-n-slate-12">
               {{ t('INBOX_MGMT.SMTP.OPEN_SSL_VERIFY_MODE') }}
             </span>
             <Select
               v-model="state.smtpVerifyMode"
               :options="selectOptions(SMTP_VERIFY_OPTIONS)"
-            />
-          </label>
-          <label class="flex flex-col gap-1">
-            <span class="text-heading-3 text-n-slate-12">
-              {{ t('INBOX_MGMT.SMTP.AUTH_MECHANISM') }}
-            </span>
-            <Select
-              v-model="state.smtpAuthentication"
-              :options="selectOptions(SMTP_AUTH_OPTIONS)"
             />
           </label>
         </div>
