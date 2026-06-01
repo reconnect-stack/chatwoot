@@ -17,6 +17,7 @@ const props = defineProps({
   children: { type: Array, default: undefined },
   activeChild: { type: Object, default: undefined },
   collapsible: { type: Boolean, default: false },
+  showTreeLine: { type: Boolean, default: false },
 });
 
 const { isAllowed } = useSidebarContext();
@@ -123,6 +124,7 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
     :icon
     :collapsible
     :is-expanded="isSubGroupExpanded"
+    :show-tree-line="showTreeLine"
     class="my-1"
     @toggle="toggleSubGroup"
   />

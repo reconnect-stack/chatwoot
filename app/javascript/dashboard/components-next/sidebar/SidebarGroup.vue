@@ -284,6 +284,7 @@ watch(
             :icon="child.icon"
             :children="child.children"
             :collapsible="child.collapsible"
+            :show-tree-line="child.showTreeLine"
             :is-expanded="isExpanded"
             :active-child="activeChild"
           />

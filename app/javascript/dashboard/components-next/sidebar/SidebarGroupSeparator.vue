@@ -18,6 +18,10 @@ defineProps({
     type: [Object, String],
     default: '',
   },
+  showTreeLine: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['toggle']);
@@ -35,6 +39,8 @@ const emit = defineEmits(['toggle']);
       'pointer-events-none': !collapsible,
       'w-[calc(100%-1.25rem)] ltr:ml-5 rtl:mr-5 cursor-pointer hover:bg-n-alpha-2':
         collapsible,
+      'child-item before:bg-n-slate-4 after:bg-transparent after:border-n-slate-4 before:left-0 rtl:before:right-0 relative ltr:!ml-3 rtl:!mr-3 ltr:!pl-2 rtl:!pr-2':
+        showTreeLine,
     }"
     @click.stop="emit('toggle')"
   >

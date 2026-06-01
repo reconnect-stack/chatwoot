@@ -91,6 +91,12 @@ describe('SidebarSubGroup', () => {
     expect(wrapper.find('.sidebar-leaf').isVisible()).toBe(true);
   });
 
+  it('can render the subgroup header on the parent tree line', () => {
+    const wrapper = mountSubGroup({ showTreeLine: true });
+
+    expect(wrapper.find('button').classes()).toContain('child-item');
+  });
+
   it('minimizes the section and stores it by account and section name', async () => {
     const wrapper = mountSubGroup();
 

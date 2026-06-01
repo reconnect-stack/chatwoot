@@ -300,7 +300,6 @@ const menuItems = computed(() => {
           icon: 'i-lucide-inbox',
           activeOn: ['inbox_conversation'],
           to: accountScopedRoute('home'),
-          hideTreeLine: true,
         },
         {
           name: 'Mentions',
@@ -308,7 +307,6 @@ const menuItems = computed(() => {
           icon: 'i-lucide-at-sign',
           activeOn: ['conversation_through_mentions'],
           to: accountScopedRoute('conversation_mentions'),
-          hideTreeLine: true,
         },
         {
           name: 'Participating',
@@ -316,7 +314,6 @@ const menuItems = computed(() => {
           icon: 'i-lucide-user-round-check',
           activeOn: ['conversation_through_participating'],
           to: accountScopedRoute('conversation_participating'),
-          hideTreeLine: true,
         },
         {
           name: 'Unattended',
@@ -324,7 +321,6 @@ const menuItems = computed(() => {
           label: t('SIDEBAR.UNATTENDED_CONVERSATIONS'),
           icon: 'i-lucide-clock-alert',
           to: accountScopedRoute('conversation_unattended'),
-          hideTreeLine: true,
         },
         {
           name: 'Folders',
@@ -332,6 +328,7 @@ const menuItems = computed(() => {
           icon: 'i-lucide-folder',
           activeOn: ['conversations_through_folders'],
           collapsible: true,
+          showTreeLine: true,
           children: conversationCustomViews.value.map(view => ({
             name: `${view.name}-${view.id}`,
             label: view.name,
@@ -344,6 +341,7 @@ const menuItems = computed(() => {
           icon: 'i-lucide-users',
           activeOn: ['conversations_through_team'],
           collapsible: true,
+          showTreeLine: true,
           children: sortedTeams.value.map(team => ({
             name: `${team.name}-${team.id}`,
             label: team.name,
@@ -357,6 +355,7 @@ const menuItems = computed(() => {
           icon: 'i-lucide-mailbox',
           activeOn: ['conversation_through_inbox'],
           collapsible: true,
+          showTreeLine: true,
           children: sortedInboxes.value.map(inbox => ({
             name: `${inbox.name}-${inbox.id}`,
             label: inbox.name,
@@ -378,6 +377,7 @@ const menuItems = computed(() => {
           icon: 'i-lucide-tag',
           activeOn: ['conversations_through_label'],
           collapsible: true,
+          showTreeLine: true,
           children: sortedLabels.value.map(label => ({
             name: `${label.title}-${label.id}`,
             label: label.title,
