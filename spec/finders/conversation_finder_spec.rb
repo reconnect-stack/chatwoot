@@ -99,7 +99,9 @@ describe ConversationFinder do
     context 'with unread sort' do
       let(:params) { { status: 'open', sort_by: 'unread' } }
 
-      it 'returns unread conversations matching the selected status' do
+      it 'returns all conversations matching the selected status with the highest unread count first' do
+        most_unread_conversation = create(:conversation, account: account, inbox: inbox,
+                                                         agent_last_seen_at: 1.hour.ago)
         unread_conversation = create(:conversation, account: account, inbox: inbox,
                                                     agent_last_seen_at: 1.hour.ago)
         read_conversation = create(:conversation, account: account, inbox: inbox,
@@ -107,15 +109,23 @@ describe ConversationFinder do
         resolved_unread_conversation = create(:conversation, account: account, inbox: inbox, status: 'resolved',
                                                              agent_last_seen_at: 1.hour.ago)
 
-        [unread_conversation, read_conversation, resolved_unread_conversation].each do |conversation|
+        [most_unread_conversation, unread_conversation, read_conversation, resolved_unread_conversation].each do |conversation|
           create(:message, account: account, inbox: inbox, conversation: conversation,
                            message_type: :incoming, created_at: 5.minutes.ago)
         end
+        create(:message, account: account, inbox: inbox, conversation: most_unread_conversation,
+                         message_type: :incoming, created_at: 4.minutes.ago)
         resolved_unread_conversation.update!(status: 'resolved')
+        read_conversation.update!(last_activity_at: 1.minute.from_now)
+        unread_conversation.update!(last_activity_at: 2.minutes.from_now)
 
         result = conversation_finder.perform
+        conversation_ids = result[:conversations].map(&:id)
 
-        expect(result[:conversations].map(&:id)).to contain_exactly(unread_conversation.id)
+        expect(conversation_ids).to include(most_unread_conversation.id, unread_conversation.id, read_conversation.id)
+        expect(conversation_ids).not_to include(resolved_unread_conversation.id)
+        expect(conversation_ids.index(most_unread_conversation.id)).to be < conversation_ids.index(unread_conversation.id)
+        expect(conversation_ids.index(unread_conversation.id)).to be < conversation_ids.index(read_conversation.id)
       end
     end
 

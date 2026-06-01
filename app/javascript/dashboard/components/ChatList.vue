@@ -305,6 +305,15 @@ function filterByAssigneeTab(conversations) {
   return [...conversations];
 }
 
+function sortByUnreadStatus(conversations) {
+  return [...conversations].sort((a, b) => {
+    const unreadCountDiff = (b.unread_count || 0) - (a.unread_count || 0);
+    if (unreadCountDiff !== 0) return unreadCountDiff;
+
+    return (b.last_activity_at || 0) - (a.last_activity_at || 0);
+  });
+}
+
 const conversationList = computed(() => {
   let localConversationList = [];
 
@@ -338,9 +347,7 @@ const conversationList = computed(() => {
     !hasAppliedFiltersOrActiveFolders.value &&
     activeSortBy.value === wootConstants.SORT_BY_TYPE.UNREAD
   ) {
-    localConversationList = localConversationList.filter(
-      conversation => conversation.unread_count > 0
-    );
+    localConversationList = sortByUnreadStatus(localConversationList);
   }
 
   return localConversationList;
