@@ -70,15 +70,13 @@ const scrollEnd = ref(false);
 const toggleSubGroup = () => {
   if (!props.collapsible) return;
 
-  const nextMinimizedSections = { ...getMinimizedSections() };
   if (isSubGroupExpanded.value) {
-    nextMinimizedSections[storageKey.value] = true;
+    LocalStorage.updateJsonStore(minimizedSectionsKey, storageKey.value, true);
   } else {
-    delete nextMinimizedSections[storageKey.value];
+    LocalStorage.deleteFromJsonStore(minimizedSectionsKey, storageKey.value);
   }
 
-  minimizedSections.value = nextMinimizedSections;
-  LocalStorage.set(minimizedSectionsKey, nextMinimizedSections);
+  minimizedSections.value = getMinimizedSections();
 };
 
 const expandSubGroupOnActiveChild = () => {
@@ -86,11 +84,8 @@ const expandSubGroupOnActiveChild = () => {
     return;
   }
 
-  const nextMinimizedSections = { ...getMinimizedSections() };
-  delete nextMinimizedSections[storageKey.value];
-
-  minimizedSections.value = nextMinimizedSections;
-  LocalStorage.set(minimizedSectionsKey, nextMinimizedSections);
+  LocalStorage.deleteFromJsonStore(minimizedSectionsKey, storageKey.value);
+  minimizedSections.value = getMinimizedSections();
 };
 
 const shouldShowItem = child => {
