@@ -379,6 +379,16 @@
       "INFO_TEXT": "Let the system automatically mark you offline when you aren't using the app or dashboard.",
       "INFO_SHORT": "Automatically mark offline when you aren't using the app."
     },
+    "SORT_TOOLTIP": "Sort",
+    "SORT_BY": "Sort by",
+    "SORT_OPTIONS": {
+      "CREATED_DESC": "Created At: Newest First",
+      "CREATED_ASC": "Created At: Oldest First",
+      "ALPHABETICAL_ASC": "Alphabetical: A to Z",
+      "ALPHABETICAL_DESC": "Alphabetical: Z to A",
+      "UNREAD_COUNT_DESC": "Unread count: Highest first",
+      "UNREAD_COUNT_ASC": "Unread count: Lowest first"
+    },
     "DOCS": "Read docs",
     "SECURITY": "Security",
     "CAPTAIN_AI": "Captain",

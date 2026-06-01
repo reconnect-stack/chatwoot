@@ -284,6 +284,9 @@ watch(
             :children="child.children"
             :is-expanded="isExpanded"
             :active-child="activeChild"
+            :sort-options="child.sortOptions"
+            :active-sort="child.activeSort"
+            @update-sort="child.onSortChange"
           />
           <SidebarGroupLeaf
             v-else-if="isAllowed(child.to)"

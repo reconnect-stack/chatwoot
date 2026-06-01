@@ -12,7 +12,11 @@ const props = defineProps({
   icon: { type: [Object, String], required: true },
   children: { type: Array, default: undefined },
   activeChild: { type: Object, default: undefined },
+  sortOptions: { type: Array, default: () => [] },
+  activeSort: { type: String, default: '' },
 });
+
+const emit = defineEmits(['update-sort']);
 
 const { isAllowed } = useSidebarContext();
 const scrollableContainer = ref(null);
@@ -46,7 +50,10 @@ useEventListener(scrollableContainer, 'scroll', () => {
     v-show="isExpanded"
     :label
     :icon
+    :sort-options="sortOptions"
+    :active-sort="activeSort"
     class="my-1"
+    @update-sort="sortBy => emit('update-sort', sortBy)"
   />
   <ul
     v-if="children.length"
