@@ -121,9 +121,13 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
   <li class="relative list-none min-w-0">
     <template v-if="hasAccessibleItems">
       <span
-        v-if="showTreeLine && !endTreeLine"
+        v-if="showTreeLine"
         aria-hidden="true"
-        class="absolute top-0 bottom-0 w-0.5 bg-n-slate-4 ltr:left-3 rtl:right-3"
+        class="absolute top-0 w-0.5 bg-n-slate-4 ltr:left-3 rtl:right-3"
+        :class="{
+          'bottom-0': !endTreeLine,
+          'h-4': endTreeLine,
+        }"
       />
       <SidebarGroupSeparator
         v-show="isExpanded"
@@ -159,6 +163,7 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
             v-bind="child"
             :key="child.name"
             :active="activeChild?.name === child.name"
+            :hide-tree-line="showTreeLine"
           />
         </div>
         <div

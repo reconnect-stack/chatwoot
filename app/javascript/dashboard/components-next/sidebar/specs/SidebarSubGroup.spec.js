@@ -51,8 +51,12 @@ const mountSubGroup = props => {
       global: {
         stubs: {
           SidebarGroupLeaf: {
-            props: ['label'],
-            template: '<li class="sidebar-leaf">{{ label }}</li>',
+            props: {
+              label: { type: String, required: true },
+              hideTreeLine: { type: Boolean, default: false },
+            },
+            template:
+              '<li class="sidebar-leaf" :data-hide-tree-line="String(hideTreeLine)">{{ label }}</li>',
           },
         },
       },
@@ -102,7 +106,18 @@ describe('SidebarSubGroup', () => {
     const wrapper = mountSubGroup({ showTreeLine: true, endTreeLine: true });
 
     expect(wrapper.find('button').classes()).toContain('tree-line-end');
-    expect(wrapper.find('span[aria-hidden="true"]').exists()).toBe(false);
+    expect(wrapper.find('span[aria-hidden="true"]').classes()).toContain('h-4');
+    expect(wrapper.find('span[aria-hidden="true"]').classes()).not.toContain(
+      'bottom-0'
+    );
+  });
+
+  it('hides nested item tree lines', () => {
+    const wrapper = mountSubGroup({ showTreeLine: true });
+
+    expect(
+      wrapper.find('.sidebar-leaf').attributes('data-hide-tree-line')
+    ).toBe('true');
   });
 
   it('minimizes the section and stores it by account and section name', async () => {
