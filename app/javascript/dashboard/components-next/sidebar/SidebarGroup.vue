@@ -113,6 +113,27 @@ const hasAccessibleChildren = computed(() => {
   return accessibleItems.value.length > 0;
 });
 
+const renderedChildren = computed(() => {
+  if (!hasChildren.value) return [];
+
+  return props.children.filter(child => {
+    if (!child.children) return child.to && isAllowed(child.to);
+
+    return child.children.some(grandChild => {
+      return grandChild.to && isAllowed(grandChild.to);
+    });
+  });
+});
+
+const isLastRenderedChild = child => {
+  const lastChild = renderedChildren.value[renderedChildren.value.length - 1];
+  return lastChild === child;
+};
+
+const shouldRenderChild = child => {
+  return renderedChildren.value.includes(child);
+};
+
 const isActive = computed(() => {
   if (props.to) {
     if (route.path === resolvePath(props.to)) return true;
@@ -278,13 +299,14 @@ watch(
       >
         <template v-for="child in children" :key="child.name">
           <SidebarSubGroup
-            v-if="child.children"
+            v-if="child.children && shouldRenderChild(child)"
             :name="`${name}:${child.name}`"
             :label="child.label"
             :icon="child.icon"
             :children="child.children"
             :collapsible="child.collapsible"
             :show-tree-line="child.showTreeLine"
+            :end-tree-line="child.showTreeLine && isLastRenderedChild(child)"
             :is-expanded="isExpanded"
             :active-child="activeChild"
           />
@@ -344,12 +366,39 @@ watch(
   left: 0;
 }
 
+.sidebar-group-children .tree-line-end::before {
+  height: 20%;
+}
+
+.sidebar-group-children .tree-line-end::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 12px;
+  bottom: calc(50% - 2px);
+  border-bottom-width: 0.125rem;
+  border-left-width: 0.125rem;
+  border-right-width: 0px;
+  border-top-width: 0px;
+  border-radius: 0 0 0 4px;
+  left: 0;
+}
+
 #app[dir='rtl'] .sidebar-group-children > .child-item:last-child::after,
 #app[dir='rtl']
   .sidebar-group-children
   > *:last-child
   > *:last-child
   > .child-item:last-child::after {
+  right: 0;
+  border-bottom-width: 0.125rem;
+  border-right-width: 0.125rem;
+  border-left-width: 0px;
+  border-top-width: 0px;
+  border-radius: 0 0 4px 0px;
+}
+
+#app[dir='rtl'] .sidebar-group-children .tree-line-end::after {
   right: 0;
   border-bottom-width: 0.125rem;
   border-right-width: 0.125rem;

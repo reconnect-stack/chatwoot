@@ -22,6 +22,10 @@ defineProps({
     type: Boolean,
     default: false,
   },
+  endTreeLine: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const emit = defineEmits(['toggle']);
@@ -41,6 +45,7 @@ const emit = defineEmits(['toggle']);
         collapsible,
       'child-item before:bg-n-slate-4 after:bg-transparent after:border-n-slate-4 before:left-0 rtl:before:right-0 relative ltr:!ml-3 rtl:!mr-3 ltr:!pl-2 rtl:!pr-2':
         showTreeLine,
+      'tree-line-end': endTreeLine,
     }"
     @click.stop="emit('toggle')"
   >

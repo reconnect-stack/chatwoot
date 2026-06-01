@@ -95,6 +95,14 @@ describe('SidebarSubGroup', () => {
     const wrapper = mountSubGroup({ showTreeLine: true });
 
     expect(wrapper.find('button').classes()).toContain('child-item');
+    expect(wrapper.find('span[aria-hidden="true"]').exists()).toBe(true);
+  });
+
+  it('can render the subgroup header as the end of the parent tree line', () => {
+    const wrapper = mountSubGroup({ showTreeLine: true, endTreeLine: true });
+
+    expect(wrapper.find('button').classes()).toContain('tree-line-end');
+    expect(wrapper.find('span[aria-hidden="true"]').exists()).toBe(false);
   });
 
   it('minimizes the section and stores it by account and section name', async () => {
