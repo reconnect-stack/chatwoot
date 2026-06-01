@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useMapGetter } from 'dashboard/composables/store';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 import { LocalStorage } from 'shared/helpers/localStorage';
@@ -41,6 +41,9 @@ const storageKey = computed(() =>
 const isSubGroupExpanded = computed(
   () => !props.collapsible || !minimizedSections.value[storageKey.value]
 );
+const hasActiveChild = computed(() =>
+  props.children.some(child => child.name === props.activeChild?.name)
+);
 
 const accessibleItems = computed(() =>
   props.children.filter(child => {
@@ -76,6 +79,18 @@ const toggleSubGroup = () => {
   LocalStorage.set(minimizedSectionsKey, nextMinimizedSections);
 };
 
+const expandSubGroupOnActiveChild = () => {
+  if (!props.collapsible || !hasActiveChild.value || isSubGroupExpanded.value) {
+    return;
+  }
+
+  const nextMinimizedSections = { ...getMinimizedSections() };
+  delete nextMinimizedSections[storageKey.value];
+
+  minimizedSections.value = nextMinimizedSections;
+  LocalStorage.set(minimizedSectionsKey, nextMinimizedSections);
+};
+
 const shouldShowItem = child => {
   return (
     isSubGroupExpanded.value &&
@@ -93,6 +108,10 @@ useEventListener(window, 'storage', event => {
   if (event.key === minimizedSectionsKey) {
     minimizedSections.value = getMinimizedSections();
   }
+});
+
+watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
+  immediate: true,
 });
 </script>
 

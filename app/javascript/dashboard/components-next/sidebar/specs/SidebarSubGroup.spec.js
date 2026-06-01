@@ -115,4 +115,20 @@ describe('SidebarSubGroup', () => {
     expect(wrapper.find('button').attributes('aria-expanded')).toBe('false');
     expect(wrapper.find('.sidebar-leaf').isVisible()).toBe(false);
   });
+
+  it('expands a stored minimized section when one of its children is active', () => {
+    window.localStorage.setItem(
+      LOCAL_STORAGE_KEYS.SIDEBAR_MINIMIZED_SECTIONS,
+      JSON.stringify({ '1:Conversation:Teams': true })
+    );
+
+    const wrapper = mountSubGroup({ activeChild: children[0] });
+
+    const storedSections = JSON.parse(
+      window.localStorage.getItem(LOCAL_STORAGE_KEYS.SIDEBAR_MINIMIZED_SECTIONS)
+    );
+    expect(wrapper.find('button').attributes('aria-expanded')).toBe('true');
+    expect(wrapper.find('.sidebar-leaf').isVisible()).toBe(true);
+    expect(storedSections).toEqual({});
+  });
 });
