@@ -43,12 +43,21 @@ const emit = defineEmits(['toggle']);
       'pointer-events-none': !collapsible,
       'w-[calc(100%-1.25rem)] ltr:ml-5 rtl:mr-5 cursor-pointer hover:bg-n-alpha-2':
         collapsible,
-      'child-item before:bg-n-slate-4 after:bg-transparent after:border-n-slate-4 before:left-0 rtl:before:right-0 ltr:!ml-3 rtl:!mr-3 ltr:!pl-4 rtl:!pr-4':
-        showTreeLine,
-      'tree-line-end': endTreeLine,
+      'ltr:!ml-3 rtl:!mr-3 ltr:!pl-4 rtl:!pr-4': showTreeLine,
     }"
     @click.stop="emit('toggle')"
   >
+    <span
+      v-if="showTreeLine"
+      aria-hidden="true"
+      class="absolute top-0 w-0.5 bg-n-slate-4 start-0"
+      :class="endTreeLine ? 'h-[20%]' : 'h-full'"
+    />
+    <span
+      v-if="showTreeLine && endTreeLine"
+      aria-hidden="true"
+      class="absolute w-2.5 h-3 bottom-[calc(50%-2px)] start-0 border-b-[0.125rem] border-s-[0.125rem] rounded-es border-n-slate-4"
+    />
     <Icon v-if="icon" :icon="icon" class="size-4" />
     <span
       class="text-sm font-medium leading-5 flex-grow truncate text-start"

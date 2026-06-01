@@ -339,7 +339,6 @@ watch(
 /* This selects the last child in a group */
 /* https://codepen.io/scmmishra/pen/yLmKNLW */
 .sidebar-group-children > .child-item:last-child::before,
-.sidebar-group-children .tree-line-end::before,
 .sidebar-group-children
   > *:last-child
   > *:last-child
@@ -348,7 +347,6 @@ watch(
 }
 
 .sidebar-group-children > .child-item:last-child::after,
-.sidebar-group-children .tree-line-end::after,
 .sidebar-group-children
   > *:last-child
   > *:last-child
@@ -367,7 +365,6 @@ watch(
 }
 
 #app[dir='rtl'] .sidebar-group-children > .child-item:last-child::after,
-#app[dir='rtl'] .sidebar-group-children .tree-line-end::after,
 #app[dir='rtl']
   .sidebar-group-children
   > *:last-child

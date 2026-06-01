@@ -97,15 +97,20 @@ describe('SidebarSubGroup', () => {
 
   it('can render the subgroup header on the parent tree line', () => {
     const wrapper = mountSubGroup({ showTreeLine: true });
+    const separatorLines = wrapper.findAll('button > span[aria-hidden="true"]');
 
-    expect(wrapper.find('button').classes()).toContain('child-item');
+    expect(separatorLines).toHaveLength(1);
+    expect(separatorLines[0].classes()).toContain('h-full');
     expect(wrapper.find('span[aria-hidden="true"]').exists()).toBe(true);
   });
 
   it('can render the subgroup header as the end of the parent tree line', () => {
     const wrapper = mountSubGroup({ showTreeLine: true, endTreeLine: true });
+    const separatorLines = wrapper.findAll('button > span[aria-hidden="true"]');
 
-    expect(wrapper.find('button').classes()).toContain('tree-line-end');
+    expect(separatorLines).toHaveLength(2);
+    expect(separatorLines[0].classes()).toContain('h-[20%]');
+    expect(separatorLines[1].classes()).toContain('border-b-[0.125rem]');
     expect(wrapper.find('span[aria-hidden="true"]').classes()).toContain('h-4');
     expect(wrapper.find('span[aria-hidden="true"]').classes()).not.toContain(
       'bottom-0'
