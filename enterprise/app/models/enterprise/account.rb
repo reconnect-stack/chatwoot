@@ -68,12 +68,18 @@ module Enterprise::Account
     saml_settings&.saml_enabled? || false
   end
 
-  # Effective billing currency. Mirrors the Stripe customer's currency once one
-  # is set (kept in sync by the billing services + Stripe webhook); falls back
-  # to the locale default (pt_BR => brl, else usd) for accounts without one yet.
+  # Effective billing currency, kept in sync with Stripe by the billing services
+  # and the subscription webhook.
   def billing_currency
     stored = custom_attributes&.dig('billing_currency')
     return Enterprise::Billing::Currencies.normalize(stored) if Enterprise::Billing::Currencies.supported?(stored)
+
+    # An account that already has a Stripe customer is billed in real money
+    # (legacy USD) and gets its currency backfilled from the subscription by the
+    # webhook — never infer it from locale, or existing pt_BR customers on USD
+    # would be shown/charged BRL. Only brand-new accounts (no Stripe customer
+    # yet) default by locale.
+    return Enterprise::Billing::Currencies::DEFAULT if custom_attributes&.dig('stripe_customer_id').present?
 
     Enterprise::Billing::Currencies.for_locale(locale)
   end
