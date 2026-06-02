@@ -3,6 +3,7 @@ module Integrations::Openai::KeyValidator
 
   def self.valid?(api_key)
     return false if api_key.blank?
+    return true if skip_remote_validation?
 
     connection = Faraday.new do |f|
       f.options.timeout = TIMEOUT_SECONDS
@@ -20,6 +21,12 @@ module Integrations::Openai::KeyValidator
   end
 
   def self.api_base
-    Llm::OpenAiConfig.api_v1_base
+    return Llm::OpenAiConfig.api_v1_base if ChatwootApp.chatwoot_cloud?
+
+    Llm::Config.api_base_for(provider: Llm::Config::DEFAULT_PROVIDER) || Llm::OpenAiConfig.api_v1_base
+  end
+
+  def self.skip_remote_validation?
+    !ChatwootApp.chatwoot_cloud? && Llm::Config.default_provider != Llm::Config::DEFAULT_PROVIDER
   end
 end
