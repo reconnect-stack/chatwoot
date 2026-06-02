@@ -8,12 +8,6 @@
   </h1>
 </header>
 
-<style>
-.eye-icon.eye-hide path {
-  d: path('M3 3l18 18M10.5 10.677a2 2 0 002.823 2.823M7.362 7.561C5.68 8.74 4.279 10.42 3 12c1.889 2.991 5.282 6 9 6 1.55 0 3.043-.523 4.395-1.35M12 6c4.008 0 6.701 3.009 9 6a15.66 15.66 0 01-1.078 1.5');
-}
-</style>
-
 <section class="main-content__body">
   <%= form_with url: super_admin_app_config_url(config: @config) , method: :post do |form| %>
     <% captain_api_base_required = @config == 'captain' && @captain_provider_api_bases&.fetch(@app_config['CAPTAIN_LLM_PROVIDER'], nil).blank? %>
@@ -67,8 +61,16 @@
                     data-target="app_config_<%= key %>"
                   >
                     <svg class="eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 5C5.63636 5 2 12 2 12C2 12 5.63636 19 12 19C18.3636 19 22 12 22 12C22 12 18.3636 5 12 5Z"/>
-                      <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/>
+                      <g class="eye-show">
+                        <path d="M12 5C5.63636 5 2 12 2 12C2 12 5.63636 19 12 19C18.3636 19 22 12 22 12C22 12 18.3636 5 12 5Z"/>
+                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"/>
+                      </g>
+                      <g class="eye-hide hidden">
+                        <path d="M3 3L21 21"/>
+                        <path d="M10.5 10.677C10.1833 11.0073 10 11.4537 10 12C10 13.1046 10.8954 14 12 14C12.5463 14 12.9927 13.8167 13.323 13.5"/>
+                        <path d="M7.362 7.561C5.68 8.74 4.279 10.42 3 12C4.889 14.991 8.282 18 12 18C13.55 18 15.043 17.477 16.395 16.65"/>
+                        <path d="M12 6C16.008 6 18.701 9.009 21 12C20.672 12.515 20.312 13.016 19.922 13.5"/>
+                      </g>
                     </svg>
                   </button>
                 </div>
@@ -204,12 +206,14 @@
         const type = input.type === 'password' ? 'text' : 'password';
         input.type = type;
 
-        // Toggle icon
-        const svg = button.querySelector('.eye-icon');
+        const showIcon = button.querySelector('.eye-show');
+        const hideIcon = button.querySelector('.eye-hide');
         if (type === 'password') {
-          svg.classList.remove('eye-hide')
+          showIcon.classList.remove('hidden');
+          hideIcon.classList.add('hidden');
         } else {
-          svg.classList.add('eye-hide')
+          showIcon.classList.add('hidden');
+          hideIcon.classList.remove('hidden');
         }
       });
     });
