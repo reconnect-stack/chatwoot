@@ -20,7 +20,7 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
   end
 
   def render_create_success
-    track_user_session
+    track_user_session unless @impersonation
     render partial: 'devise/auth', formats: [:json], locals: { resource: @resource }
   end
 
@@ -66,7 +66,7 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
   end
 
   def authenticate_resource_with_sso_token
-    @token = @resource.create_token
+    @token = @resource.create_token(lifespan: @impersonation ? 1.hour.to_i : nil)
     @resource.save!
 
     sign_in(:user, @resource, store: false, bypass: false)
@@ -78,7 +78,10 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
     return if params[:email].blank?
 
     user = User.from_email(params[:email])
-    @resource = user if user&.valid_sso_auth_token?(params[:sso_auth_token])
+    return unless user&.valid_sso_auth_token?(params[:sso_auth_token])
+
+    @resource = user
+    @impersonation = user.sso_auth_token_impersonation?(params[:sso_auth_token])
   end
 
   def handle_mfa_required(user)

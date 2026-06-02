@@ -180,4 +180,40 @@ RSpec.describe DeviseOverrides::SessionsController, type: :controller do
       end
     end
   end
+
+  describe 'impersonation SSO login' do
+    let(:user) { create(:user, password: 'Test@123456') }
+    let(:browser_ua) { 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15' }
+
+    before { request.env['HTTP_USER_AGENT'] = browser_ua }
+
+    it 'does not create a UserSession row for impersonation login' do
+      sso_token = user.generate_sso_auth_token(impersonation: true)
+
+      expect do
+        post :create, params: { email: user.email, sso_auth_token: sso_token }
+      end.not_to change(user.user_sessions, :count)
+
+      expect(response).to have_http_status(:success)
+    end
+
+    it 'creates a short-lived token for impersonation login' do
+      sso_token = user.generate_sso_auth_token(impersonation: true)
+
+      post :create, params: { email: user.email, sso_auth_token: sso_token }
+
+      expect(response).to have_http_status(:success)
+      token_entry = user.reload.tokens.values.last
+      # 1-hour lifespan: expiry should be within ~2 hours from now (token creation + lifespan)
+      expect(token_entry['expiry']).to be < (2.hours.from_now).to_i
+    end
+
+    it 'creates a normal UserSession row for regular SSO login' do
+      sso_token = user.generate_sso_auth_token
+
+      expect do
+        post :create, params: { email: user.email, sso_auth_token: sso_token }
+      end.to change(user.user_sessions, :count).by(1)
+    end
+  end
 end
