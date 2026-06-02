@@ -5,17 +5,6 @@ class Enterprise::Billing::TopupCheckoutService
 
   TOPUP_OPTIONS_CONFIG = 'CHATWOOT_CLOUD_TOPUP_OPTIONS'.freeze
 
-  # Used only when CHATWOOT_CLOUD_TOPUP_OPTIONS is not configured, so the
-  # billing page never breaks during rollout. Real rates live in the config.
-  FALLBACK_OPTIONS = {
-    'usd' => [
-      { 'credits' => 1000, 'amount' => 20.0 },
-      { 'credits' => 2500, 'amount' => 50.0 },
-      { 'credits' => 6000, 'amount' => 100.0 },
-      { 'credits' => 12_000, 'amount' => 200.0 }
-    ]
-  }.freeze
-
   pattr_initialize [:account!]
 
   # Topup packages for the account's billing currency, used by the controller
@@ -124,8 +113,6 @@ class Enterprise::Billing::TopupCheckoutService
   def configured_options
     config = InstallationConfig.find_by(name: TOPUP_OPTIONS_CONFIG)&.value
     config = JSON.parse(config) if config.is_a?(String)
-    config.presence || FALLBACK_OPTIONS
-  rescue JSON::ParserError
-    FALLBACK_OPTIONS
+    config || {}
   end
 end
