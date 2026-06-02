@@ -104,7 +104,11 @@ const handleSortChange = sortBy => {
 </script>
 
 <template>
-  <div ref="triggerRef" class="relative flex-shrink-0">
+  <div
+    ref="triggerRef"
+    class="relative invisible flex-shrink-0 opacity-0 pointer-events-none transition-opacity duration-150 group-hover/sidebar-section:visible group-hover/sidebar-section:opacity-100 group-hover/sidebar-section:pointer-events-auto"
+    :class="{ '!visible !opacity-100 !pointer-events-auto': isOpen }"
+  >
     <Button
       :title="t('SIDEBAR.SORT_TOOLTIP')"
       icon="i-lucide-arrow-up-down"
