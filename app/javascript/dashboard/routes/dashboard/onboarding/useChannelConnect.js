@@ -40,8 +40,8 @@ export function useChannelConnect() {
 
   // WhatsApp connects via Meta's embedded-signup popup instead of the redirect
   // OAuth flow above. Collect the signup credentials, exchange them for an
-  // inbox, and surface the result inline — the store commits the new inbox, so
-  // the connected state updates without a refetch.
+  // inbox, and surface the result inline — then refetch so the connected state
+  // reflects the freshly created inbox (and renders its real channel icon).
   const connectWhatsapp = async () => {
     let credentials;
     try {
@@ -54,6 +54,7 @@ export function useChannelConnect() {
 
     try {
       await store.dispatch('inboxes/createWhatsAppEmbeddedSignup', credentials);
+      await store.dispatch('inboxes/get');
       useAlert(t('ONBOARDING_INBOX_SETUP.WHATSAPP_CONNECTED'));
     } catch (error) {
       useAlert(

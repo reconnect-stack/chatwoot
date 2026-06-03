@@ -13,6 +13,8 @@ const props = defineProps({
   inboxes: { type: Array, default: () => [] },
 });
 
+const emit = defineEmits(['connected']);
+
 const { t } = useI18n();
 const { connectViaOAuth, connectWhatsapp } = useChannelConnect();
 const globalConfig = useMapGetter('globalConfig/get');
@@ -45,13 +47,13 @@ const CHANNEL_CONFIGURED = {
 };
 
 const isConfigured = channel => CHANNEL_CONFIGURED[channel.type]?.() ?? true;
-const isInteractive = channel => !channel.disabled && isConfigured(channel);
+const isInteractive = channel => !channel.setupLater && isConfigured(channel);
 // Unconfigured = a real channel whose installation credential is missing (as
-// opposed to the intentionally disabled SMS/API/Voice/Email cards).
-const isUnconfigured = channel => !channel.disabled && !isConfigured(channel);
+// opposed to the setup-later SMS/API/Voice/Email cards).
+const isUnconfigured = channel => !channel.setupLater && !isConfigured(channel);
 
 const cardClass = channel => {
-  if (channel.disabled) return 'bg-n-slate-2 cursor-not-allowed';
+  if (channel.setupLater) return 'bg-n-slate-2 cursor-not-allowed';
   if (!isConfigured(channel))
     return 'bg-n-solid-1 opacity-50 cursor-not-allowed';
   return 'bg-n-solid-1 hover:outline-n-slate-6 cursor-pointer';
@@ -62,6 +64,14 @@ const dialogRef = ref(null);
 // Credential-form channels (Line, Telegram) swap the grid for an inline form;
 // OAuth channels redirect; the rest are no-ops for now.
 const selectedChannel = ref(null);
+
+// An inbox was created by an in-dialog form (Line/Telegram credentials or the
+// Facebook page picker); close the form view and let the parent refetch so the
+// connected state and real channel icons update.
+const onCreated = () => {
+  selectedChannel.value = null;
+  emit('connected');
+};
 
 const onCardClick = channel => {
   if (!isInteractive(channel)) return;
@@ -107,6 +117,11 @@ const dialogDescription = computed(() => {
 // type (Voice, Other Email Providers) render `fallbackIcon` instead.
 const CHANNEL_LIST = [
   {
+    type: 'website',
+    label: 'Website',
+    inbox: { channel_type: 'Channel::WebWidget' },
+  },
+  {
     type: 'whatsapp',
     label: 'WhatsApp',
     inbox: { channel_type: 'Channel::Whatsapp' },
@@ -127,59 +142,54 @@ const CHANNEL_LIST = [
     inbox: { channel_type: 'Channel::Tiktok' },
   },
   {
-    type: 'line',
-    label: 'LINE',
-    inbox: { channel_type: 'Channel::Line' },
-    form: true,
-  },
-  // Email channels (including Gmail/Outlook OAuth) are disabled for this phase;
-  // they will be enabled in a future PR.
-  {
-    type: 'gmail',
-    label: 'Gmail',
-    inbox: { channel_type: 'Channel::Email', provider: 'google' },
-    disabled: true,
-  },
-  {
-    type: 'outlook',
-    label: 'Outlook',
-    inbox: { channel_type: 'Channel::Email', provider: 'microsoft' },
-    disabled: true,
-  },
-  {
     type: 'telegram',
     label: 'Telegram',
     inbox: { channel_type: 'Channel::Telegram' },
     form: true,
   },
   {
-    type: 'website',
-    label: 'Website',
-    inbox: { channel_type: 'Channel::WebWidget' },
+    type: 'line',
+    label: 'LINE',
+    inbox: { channel_type: 'Channel::Line' },
+    form: true,
+  },
+  // Email channels (including Gmail/Outlook OAuth) are set up later in-app for
+  // this phase; they will be enabled in a future PR.
+  {
+    type: 'gmail',
+    label: 'Gmail',
+    inbox: { channel_type: 'Channel::Email', provider: 'google' },
+    setupLater: true,
+  },
+  {
+    type: 'outlook',
+    label: 'Outlook',
+    inbox: { channel_type: 'Channel::Email', provider: 'microsoft' },
+    setupLater: true,
   },
   {
     type: 'sms',
     label: 'SMS',
     inbox: { channel_type: 'Channel::Sms' },
-    disabled: true,
+    setupLater: true,
   },
   {
     type: 'api',
     label: 'API',
     inbox: { channel_type: 'Channel::Api' },
-    disabled: true,
+    setupLater: true,
   },
   {
     type: 'voice',
     label: 'Voice',
     fallbackIcon: 'i-woot-voice',
-    disabled: true,
+    setupLater: true,
   },
   {
     type: 'email',
     label: 'Other Email Providers',
     fallbackIcon: 'i-woot-mail',
-    disabled: true,
+    setupLater: true,
   },
 ];
 
@@ -222,13 +232,13 @@ defineExpose({ open, close });
     <InboxFacebookForm
       v-if="selectedChannel?.type === 'facebook'"
       @back="selectedChannel = null"
-      @created="selectedChannel = null"
+      @created="onCreated"
     />
     <InboxChannelForm
       v-else-if="selectedChannel"
       :channel="selectedChannel"
       @back="selectedChannel = null"
-      @created="selectedChannel = null"
+      @created="onCreated"
     />
     <template v-else>
       <div class="grid grid-cols-2 gap-3">
@@ -265,6 +275,12 @@ defineExpose({ open, close });
               class="block text-xs text-n-slate-11"
             >
               {{ t('ONBOARDING_INBOX_SETUP.CHANNELS_DIALOG.NOT_CONFIGURED') }}
+            </span>
+            <span
+              v-else-if="channel.setupLater"
+              class="block text-xs text-n-slate-11"
+            >
+              {{ t('ONBOARDING_INBOX_SETUP.CHANNELS_DIALOG.SETUP_LATER') }}
             </span>
           </div>
           <Icon

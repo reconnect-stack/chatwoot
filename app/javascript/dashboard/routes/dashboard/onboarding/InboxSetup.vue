@@ -105,6 +105,18 @@ const detectedEmailChannel = computed(() => {
   };
 });
 
+// The real inbox backing a channel, if one exists — a connected inbox sharing
+// its channel_type. Gmail and Outlook both use Channel::Email, so for email we
+// also match on provider. Returned (not just a boolean) so the row can show the
+// actual connected account's name rather than the detected handle.
+const connectedInbox = channel =>
+  inboxes.value.find(
+    inbox =>
+      inbox.channel_type === channel.inbox?.channel_type &&
+      (channel.inbox?.channel_type !== 'Channel::Email' ||
+        inbox.provider === channel.inbox?.provider)
+  );
+
 const displayedChannels = computed(() =>
   [detectedEmailChannel.value, ...connectedChannels.value]
     .filter(Boolean)
@@ -158,6 +170,7 @@ const handleContinue = () =>
 const handleSkip = () =>
   completeOnboarding(ONBOARDING_EVENTS.INBOX_SETUP_SKIPPED);
 const openChannelsDialog = () => channelsDialogRef.value?.open();
+const refetchInboxes = () => store.dispatch('inboxes/get');
 
 // WhatsApp connects via Meta's embedded-signup popup; Facebook opens the
 // channels dialog straight into its page picker (it needs a selection step);
@@ -206,6 +219,7 @@ const connectChannel = channel => {
         v-for="(channel, index) in displayedChannels"
         :key="channel.type"
         :channel="channel"
+        :connected-inbox="connectedInbox(channel)"
         :class="{ 'border-t border-n-weak': index > 0 }"
         @connect="connectChannel"
       />
@@ -222,20 +236,19 @@ const connectChannel = channel => {
             {{ t('ONBOARDING_INBOX_SETUP.CHANNELS.MORE_CHANNELS_NOTE') }}
           </span>
         </div>
-        <div
-          v-if="remainingChannels.length"
-          class="flex items-center gap-2 flex-shrink-0"
-        >
-          <div class="flex items-center gap-1">
-            <ChannelIcon
-              v-for="channel in remainingChannels"
-              :key="channel.type"
-              :inbox="channel.inbox"
-              use-brand-icon
-              class="size-4"
-            />
-          </div>
-          <span class="w-px h-4 bg-n-weak" />
+        <div class="flex items-center gap-2 flex-shrink-0">
+          <template v-if="remainingChannels.length">
+            <div class="flex items-center gap-1">
+              <ChannelIcon
+                v-for="channel in remainingChannels"
+                :key="channel.type"
+                :inbox="channel.inbox"
+                use-brand-icon
+                class="size-4"
+              />
+            </div>
+            <span class="w-px h-4 bg-n-weak" />
+          </template>
           <button
             type="button"
             class="text-sm font-medium text-n-blue-11 hover:underline"
@@ -294,5 +307,9 @@ const connectChannel = channel => {
       </div>
     </OnboardingSection>
   </OnboardingLayout>
-  <InboxChannelsDialog ref="channelsDialogRef" :inboxes="inboxes" />
+  <InboxChannelsDialog
+    ref="channelsDialogRef"
+    :inboxes="inboxes"
+    @connected="refetchInboxes"
+  />
 </template>
