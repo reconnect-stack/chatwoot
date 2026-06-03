@@ -110,6 +110,49 @@ RSpec.describe AppStoreConnect::Client do
       expect(WebMock).not_to have_requested(:get, 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews?page=2')
     end
 
+    it 'includes older reviews when the developer response was updated after the sync cursor' do
+      stub_request(:get, 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews')
+        .with(query: { include: 'response', limit: '200', sort: '-createdDate' })
+        .to_return(
+          status: 200,
+          body: {
+            data: [
+              {
+                id: 'review-1',
+                type: 'customerReviews',
+                attributes: {
+                  createdDate: '2026-05-19T10:00:00-00:00'
+                },
+                relationships: {
+                  response: {
+                    data: {
+                      id: 'response-1',
+                      type: 'customerReviewResponses'
+                    }
+                  }
+                }
+              }
+            ],
+            included: [
+              {
+                id: 'response-1',
+                type: 'customerReviewResponses',
+                attributes: {
+                  responseBody: 'Updated response',
+                  lastModifiedDate: '2026-05-20T11:00:00-00:00'
+                }
+              }
+            ]
+          }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      review_payloads = described_class.new(channel: channel).fetch_reviews(since: Time.zone.parse('2026-05-20T10:00:00-00:00'))
+
+      expect(review_payloads.pluck('review').pluck('id')).to eq(['review-1'])
+      expect(review_payloads.first['response']['attributes']['responseBody']).to eq('Updated response')
+    end
+
     it 'fetches a fresh cached token for each request' do
       first_token_service = instance_double(AppStoreConnect::TokenService, token: 'first-token')
       second_token_service = instance_double(AppStoreConnect::TokenService, token: 'second-token')

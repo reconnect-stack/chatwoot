@@ -20,7 +20,7 @@ class Inboxes::FetchAppStoreReviewsJob < ApplicationJob
 
     channel.fetch_reviews.each do |review_payload|
       ::AppStore::ReviewBuilder.new(review_payload: review_payload, channel: channel).perform
-      synced_dates << parsed_review_created_at(review_payload)
+      synced_dates << payload_synced_at(review_payload)
     rescue StandardError => e
       failed = true
       ChatwootExceptionTracker.new(e, account: channel.account).capture_exception
@@ -28,11 +28,18 @@ class Inboxes::FetchAppStoreReviewsJob < ApplicationJob
 
     return if failed
 
-    synced_dates.compact.max
+    [channel.last_synced_at, synced_dates.compact.max].compact.max
   end
 
-  def parsed_review_created_at(review_payload)
-    Time.zone.parse(review_payload.dig('review', 'attributes', 'createdDate').to_s)
+  def payload_synced_at(review_payload)
+    [
+      parsed_timestamp(review_payload.dig('review', 'attributes', 'createdDate')),
+      parsed_timestamp(review_payload.dig('response', 'attributes', 'lastModifiedDate'))
+    ].compact.max
+  end
+
+  def parsed_timestamp(value)
+    Time.zone.parse(value.to_s)
   rescue StandardError
     nil
   end

@@ -62,16 +62,24 @@ class AppStoreConnect::Client
   def fresh_review_payloads(review_payloads, since)
     return review_payloads if since.blank?
 
-    review_payloads.select { |review_payload| review_created_after?(review_payload, since) }
+    review_payloads.select { |review_payload| review_updated_after?(review_payload, since) }
   end
 
-  def review_created_after?(review_payload, since)
-    created_at = Time.zone.parse(review_payload.dig('review', 'attributes', 'createdDate').to_s)
-    return true if created_at.blank?
+  def review_updated_after?(review_payload, since)
+    review_updated_at = [
+      parsed_timestamp(review_payload.dig('review', 'attributes', 'createdDate')),
+      parsed_timestamp(review_payload.dig('response', 'attributes', 'lastModifiedDate'))
+    ].compact.max
 
-    created_at > since
+    return true if review_updated_at.blank?
+
+    review_updated_at >= since
+  end
+
+  def parsed_timestamp(value)
+    Time.zone.parse(value.to_s)
   rescue StandardError
-    true
+    nil
   end
 
   def get(path, query = {})
