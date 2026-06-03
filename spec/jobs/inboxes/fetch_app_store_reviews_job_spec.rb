@@ -38,7 +38,19 @@ RSpec.describe Inboxes::FetchAppStoreReviewsJob do
     described_class.perform_now(channel)
 
     expect(exception_tracker).to have_received(:capture_exception)
-    expect(channel.reload.last_synced_at).to be_present
+  end
+
+  it 'does not update the sync timestamp when a review fails to build' do
+    exception_tracker = instance_double(ChatwootExceptionTracker, capture_exception: true)
+
+    channel.update!(last_synced_at: 2.hours.ago)
+    allow(channel).to receive(:fetch_reviews).and_return([review_payload])
+    allow(AppStore::ReviewBuilder).to receive(:new).and_return(review_builder)
+    allow(review_builder).to receive(:perform).and_raise(StandardError, 'bad review')
+    allow(ChatwootExceptionTracker).to receive(:new).and_return(exception_tracker)
+
+    expect { described_class.perform_now(channel) }
+      .not_to change(channel.reload, :last_synced_at)
   end
 
   it 'does not fetch reviews when the feature is disabled for the account' do

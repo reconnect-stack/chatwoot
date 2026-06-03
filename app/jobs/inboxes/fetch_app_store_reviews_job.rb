@@ -4,11 +4,15 @@ class Inboxes::FetchAppStoreReviewsJob < ApplicationJob
   def perform(channel)
     return unless channel.account.feature_enabled?(:channel_app_store)
 
+    failed = false
     channel.fetch_reviews.each do |review_payload|
       ::AppStore::ReviewBuilder.new(review_payload: review_payload, channel: channel).perform
     rescue StandardError => e
+      failed = true
       ChatwootExceptionTracker.new(e, account: channel.account).capture_exception
     end
+
+    return if failed
 
     channel.update!(last_synced_at: Time.current)
   rescue StandardError => e
