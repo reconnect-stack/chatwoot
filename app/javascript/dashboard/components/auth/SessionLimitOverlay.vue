@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { format, parseISO } from 'date-fns';
 
@@ -43,6 +43,14 @@ const sessionLabel = session => {
   if (!isUnknown(session.platform_name)) parts.push(session.platform_name);
   return parts.join(' on ') || t('SESSION_LIMIT.UNKNOWN_DEVICE');
 };
+
+watch(
+  () => props.sessions,
+  () => {
+    revokingId.value = null;
+    revokingAll.value = false;
+  }
+);
 
 const handleRevoke = session => {
   revokingId.value = session.id;
