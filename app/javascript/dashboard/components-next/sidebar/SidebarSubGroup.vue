@@ -142,6 +142,11 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
           'w-[calc(100%-1.25rem)] ltr:ml-5 rtl:mr-5': collapsible,
         }"
       >
+        <span
+          v-if="showTreeLine && isSubGroupExpanded"
+          aria-hidden="true"
+          class="absolute top-0 bottom-0 w-px bg-n-slate-4 ltr:left-3 rtl:right-3"
+        />
         <!-- Each element has h-8, which is 32px, we will show 7 items with one hidden at the end,
         which is 14rem. Then we add 16px so that we have some text visible from the next item  -->
         <div

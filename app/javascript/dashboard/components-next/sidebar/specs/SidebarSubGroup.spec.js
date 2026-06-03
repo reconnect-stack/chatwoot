@@ -125,6 +125,14 @@ describe('SidebarSubGroup', () => {
     ).toBe('true');
   });
 
+  it('renders a subtle tree line within the subgroup items', () => {
+    const wrapper = mountSubGroup({ showTreeLine: true });
+    const subTreeLine = wrapper.find('ul > span[aria-hidden="true"]');
+
+    expect(subTreeLine.classes()).toContain('w-px');
+    expect(subTreeLine.classes()).toContain('bg-n-slate-4');
+  });
+
   it('minimizes the section and stores it by account and section name', async () => {
     const wrapper = mountSubGroup();
 
