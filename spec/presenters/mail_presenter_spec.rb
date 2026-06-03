@@ -257,6 +257,23 @@ RSpec.describe MailPresenter do
           expect(presenter.notification_email_from_chatwoot?).to be(true)
         end
       end
+
+      it 'detects Chatwoot notification emails even when reply_to points to the conversation reply address' do
+        notification_mail = Mail.new do
+          from 'Chatwoot <accounts@chatwoot.com>'
+          reply_to 'reply+5f85d369-8486-41c0-87ce-5a914a00b721@reply.chatwoot.com'
+          to 'Customer <customer@example.com>'
+          header['Subject'] = '[#81209] New messages on this conversation'
+          body 'Thank you for your understanding.'
+        end
+
+        with_modified_env MAILER_SENDER_EMAIL: 'Chatwoot <accounts@chatwoot.com>' do
+          presenter = described_class.new(notification_mail)
+
+          expect(presenter.original_sender).to eq('reply+5f85d369-8486-41c0-87ce-5a914a00b721@reply.chatwoot.com')
+          expect(presenter.notification_email_from_chatwoot?).to be(true)
+        end
+      end
     end
   end
 end
