@@ -66,10 +66,10 @@ const dialogRef = ref(null);
 const selectedChannel = ref(null);
 
 // An inbox was created by an in-dialog form (Line/Telegram credentials or the
-// Facebook page picker); close the form view and let the parent refetch so the
-// connected state and real channel icons update.
+// Facebook page picker); close the dialog (its @close resets the form view) and
+// let the parent refetch so the connected state and real channel icons update.
 const onCreated = () => {
-  selectedChannel.value = null;
+  dialogRef.value?.close();
   emit('connected');
 };
 
