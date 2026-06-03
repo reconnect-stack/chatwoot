@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onBeforeUnmount, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useStore } from 'vuex';
 import { useCallSession } from 'dashboard/composables/useCallSession';
@@ -227,13 +227,37 @@ watch(
   { immediate: true }
 );
 
-onBeforeUnmount(stopRingtone);
+// Render the call window in the opposite theme of the product (light UI while
+// the app is dark and vice versa) so an incoming call stands out. The app
+// toggles `.dark` on document.body; mirror that here and apply the inverse
+// class to the widget root — both the n-* CSS tokens and Tailwind `dark:`
+// variants pick up the `.light`/`.dark` boundary.
+const isAppDark = ref(false);
+const inverseThemeClass = computed(() => (isAppDark.value ? 'light' : 'dark'));
+const syncAppTheme = () => {
+  isAppDark.value = document.body.classList.contains('dark');
+};
+const themeObserver = new MutationObserver(syncAppTheme);
+
+onMounted(() => {
+  syncAppTheme();
+  themeObserver.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+});
+
+onBeforeUnmount(() => {
+  stopRingtone();
+  themeObserver.disconnect();
+});
 </script>
 
 <template>
   <div
     v-if="incomingCalls.length || hasActiveCall"
     class="fixed ltr:right-4 rtl:left-4 bottom-4 z-50 flex flex-col gap-3 w-[400px]"
+    :class="inverseThemeClass"
   >
     <!-- Stacked incoming calls (shown above the primary card) -->
     <CallCard

@@ -1,7 +1,11 @@
 // scss-lint:disable PropertySortOrder
 @layer base {
   // NEXT COLORS START
-  :root {
+  // `.light` mirrors `:root` so any subtree can be forced back to the light
+  // palette even when an ancestor (e.g. `body.dark`) sets the dark tokens —
+  // used to render the call window in the opposite theme of the product.
+  :root,
+  .light {
     // slate
     --slate-1: 252 252 253;
     --slate-2: 249 249 251;
