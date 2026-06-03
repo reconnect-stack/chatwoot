@@ -34,6 +34,7 @@ const tailwindConfig = {
     './app/javascript/dashboard/composables/**/*.js',
     './app/javascript/dashboard/components-next/**/*.js',
     './app/javascript/dashboard/routes/dashboard/**/**/*.js',
+    './app/javascript/stories/**/*.{js,vue}',
     './app/views/**/*.erb',
   ],
   theme: {

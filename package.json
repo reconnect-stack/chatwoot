@@ -15,9 +15,9 @@
     "build:sdk": "vite build --config vite.lib.config.ts",
     "prepare": "husky install",
     "size": "size-limit",
-    "story:dev": "histoire dev",
-    "story:build": "histoire build",
-    "story:preview": "histoire preview",
+    "story:dev": "vite --config vite.stories.config.ts",
+    "story:build": "vite build --config vite.stories.config.ts",
+    "story:preview": "vite preview --config vite.stories.config.ts",
     "sync:i18n": "bin/sync_i18n_file_change"
   },
   "size-limit": [
@@ -114,7 +114,6 @@
   },
   "devDependencies": {
     "@egoist/tailwindcss-icons": "^1.9.2",
-    "@histoire/plugin-vue": "0.17.15",
     "@iconify-json/logos": "^1.2.10",
     "@iconify-json/lucide": "^1.2.82",
     "@iconify-json/ph": "^1.2.2",
@@ -136,7 +135,6 @@
     "eslint-plugin-vitest-globals": "^1.5.0",
     "eslint-plugin-vue": "^9.28.0",
     "fake-indexeddb": "^6.0.0",
-    "histoire": "0.17.15",
     "husky": "^7.0.0",
     "jsdom": "^27.2.0",
     "lint-staged": "^16.2.7",

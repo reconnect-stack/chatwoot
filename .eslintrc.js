@@ -28,6 +28,17 @@ module.exports = {
         'no-console': 'off',
       },
     },
+    {
+      // The stories harness is dev-only tooling, not user-facing UI.
+      files: ['app/javascript/stories/**/*.{js,vue}'],
+      rules: {
+        'vue/no-bare-strings-in-template': 'off',
+        '@intlify/vue-i18n/no-raw-text': 'off',
+        // `group` is declared on <Story> only to accept Histoire's API.
+        'vue/no-unused-properties': 'off',
+        'no-console': 'off',
+      },
+    },
   ],
   plugins: ['html', 'prettier'],
   parserOptions: {
