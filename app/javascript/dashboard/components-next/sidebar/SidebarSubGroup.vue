@@ -145,7 +145,12 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
         <span
           v-if="showTreeLine && isSubGroupExpanded"
           aria-hidden="true"
-          class="absolute top-0 bottom-0 w-px bg-n-slate-4 ltr:left-3 rtl:right-3"
+          class="absolute top-0 bottom-4 w-px bg-n-slate-4 start-3"
+        />
+        <span
+          v-if="showTreeLine && isSubGroupExpanded"
+          aria-hidden="true"
+          class="absolute w-2.5 h-3 bottom-[calc(1rem-2px)] start-3 border-b border-s rounded-es border-n-slate-4"
         />
         <!-- Each element has h-8, which is 32px, we will show 7 items with one hidden at the end,
         which is 14rem. Then we add 16px so that we have some text visible from the next item  -->

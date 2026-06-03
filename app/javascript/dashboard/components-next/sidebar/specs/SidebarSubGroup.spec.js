@@ -125,12 +125,16 @@ describe('SidebarSubGroup', () => {
     ).toBe('true');
   });
 
-  it('renders a subtle tree line within the subgroup items', () => {
+  it('renders a subtle tree line with an end curve within the subgroup items', () => {
     const wrapper = mountSubGroup({ showTreeLine: true });
-    const subTreeLine = wrapper.find('ul > span[aria-hidden="true"]');
+    const subTreeLines = wrapper.findAll('ul > span[aria-hidden="true"]');
 
-    expect(subTreeLine.classes()).toContain('w-px');
-    expect(subTreeLine.classes()).toContain('bg-n-slate-4');
+    expect(subTreeLines).toHaveLength(2);
+    expect(subTreeLines[0].classes()).toContain('w-px');
+    expect(subTreeLines[0].classes()).toContain('bg-n-slate-4');
+    expect(subTreeLines[1].classes()).toContain('border-b');
+    expect(subTreeLines[1].classes()).toContain('border-s');
+    expect(subTreeLines[1].classes()).toContain('border-n-slate-4');
   });
 
   it('minimizes the section and stores it by account and section name', async () => {
