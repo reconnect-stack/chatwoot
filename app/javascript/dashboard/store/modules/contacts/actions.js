@@ -2,12 +2,12 @@ import {
   DuplicateContactException,
   ExceptionWithMessage,
 } from 'shared/helpers/CustomErrors';
-import types from '../../mutation-types';
-import ContactAPI from '../../../api/contacts';
 import snakecaseKeys from 'snakecase-keys';
 import AccountActionsAPI from '../../../api/accountActions';
+import ContactAPI from '../../../api/contacts';
 import AnalyticsHelper from '../../../helper/AnalyticsHelper';
 import { CONTACTS_EVENTS } from '../../../helper/AnalyticsHelper/events';
+import types from '../../mutation-types';
 
 const buildContactFormData = contactParams => {
   const formData = new FormData();
@@ -114,8 +114,7 @@ export const actions = {
     }
   },
 
-  fetchAttachments: async ({ commit, state }, id) => {
-    if (state.records[id]?.attachments) return;
+  fetchAttachments: async ({ commit }, id) => {
     commit(types.SET_CONTACT_UI_FLAG, { isFetchingAttachments: true });
     try {
       const response = await ContactAPI.getAttachments(id);

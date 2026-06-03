@@ -456,13 +456,18 @@ describe('#actions', () => {
       ]);
     });
 
-    it('skips the request when attachments are already cached', async () => {
+    it('refetches even when attachments are already cached', async () => {
+      axios.get.mockResolvedValue({ data: { payload: attachments } });
       const state = {
         records: { 1: { id: 1, attachments: [{ id: 99 }] } },
       };
       await actions.fetchAttachments({ commit, state }, 1);
-      expect(commit).not.toHaveBeenCalled();
-      expect(axios.get).not.toHaveBeenCalled();
+      expect(axios.get).toHaveBeenCalled();
+      expect(commit.mock.calls).toEqual([
+        [types.SET_CONTACT_UI_FLAG, { isFetchingAttachments: true }],
+        [types.SET_CONTACT_ATTACHMENTS, { id: 1, data: attachments }],
+        [types.SET_CONTACT_UI_FLAG, { isFetchingAttachments: false }],
+      ]);
     });
 
     it('clears the loading flag and rethrows when the API errors', async () => {
