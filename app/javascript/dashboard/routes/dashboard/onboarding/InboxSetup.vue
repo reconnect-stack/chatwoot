@@ -32,16 +32,7 @@ const helpCenterGenerationId = computed(
 
 const isSubmitting = ref(false);
 
-const integrations = useMapGetter('integrations/getAppIntegrations');
 const inboxes = useMapGetter('inboxes/getInboxes');
-
-const FEATURED_APP_IDS = ['slack', 'linear'];
-
-const featuredApps = computed(() =>
-  FEATURED_APP_IDS.map(id =>
-    integrations.value.find(item => item.id === id)
-  ).filter(Boolean)
-);
 
 const { displayedChannels, remainingChannels, connectedInbox } =
   useDetectedChannels();
@@ -49,7 +40,6 @@ const { displayedChannels, remainingChannels, connectedInbox } =
 const channelsDialogRef = ref(null);
 
 onMounted(() => {
-  store.dispatch('integrations/get');
   store.dispatch('inboxes/get');
   useHelpCenterGenerationStore().hydrate(helpCenterGenerationId.value);
   useTrack(ONBOARDING_EVENTS.INBOX_SETUP_VISITED);
@@ -141,54 +131,6 @@ const connectChannel = channel => {
         :remaining-channels="remainingChannels"
         @view-all="openChannelsDialog"
       />
-    </OnboardingSection>
-
-    <!-- Disabled for this phase; integrations will be implemented later. -->
-    <!-- TODO: Delete this and associated code for adding it later -->
-    <OnboardingSection
-      v-if="false"
-      :title="t('ONBOARDING_INBOX_SETUP.APPS.TITLE')"
-      icon="i-lucide-blocks"
-      bare
-    >
-      <div class="grid grid-cols-2 gap-3">
-        <div
-          v-for="app in featuredApps"
-          :key="app.id"
-          class="border border-n-weak rounded-xl bg-n-surface-1 p-3 flex flex-col gap-2"
-        >
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <img
-                :src="`/dashboard/images/integrations/${app.id}.png`"
-                :alt="app.name"
-                class="size-5 object-contain block dark:hidden"
-              />
-              <img
-                :src="`/dashboard/images/integrations/${app.id}-dark.png`"
-                :alt="app.name"
-                class="size-5 object-contain hidden dark:block"
-              />
-              <span class="text-sm font-medium text-n-slate-12">
-                {{ app.name }}
-              </span>
-            </div>
-            <span v-if="app.enabled" class="text-sm text-n-slate-11">
-              {{ t('INTEGRATION_APPS.STATUS.ENABLED') }}
-            </span>
-            <button
-              v-else
-              type="button"
-              class="text-sm font-medium text-n-blue-11 hover:underline"
-            >
-              {{ t('INTEGRATION_APPS.CONFIGURE') }}
-            </button>
-          </div>
-          <p class="text-xs leading-relaxed text-n-slate-11">
-            {{ app.description }}
-          </p>
-        </div>
-      </div>
     </OnboardingSection>
   </OnboardingLayout>
   <InboxChannelsDialog

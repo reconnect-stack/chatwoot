@@ -80,9 +80,6 @@
       "FACEBOOK_LOADING": "Loading your Facebook Pages…",
       "FACEBOOK_NO_PAGES": "No connectable Pages found. All your Pages are already connected.",
       "FACEBOOK_ERROR": "Couldn't connect to Facebook. Please try again."
-    },
-    "APPS": {
-      "TITLE": "Connect your favorite apps"
     }
   }
 }
