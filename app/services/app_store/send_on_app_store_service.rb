@@ -8,7 +8,7 @@ class AppStore::SendOnAppStoreService < Base::SendOnChannelService
   def perform_reply
     validate_feature_enabled!
     validate_message_support!
-    source_id = channel.reply_to_review(review_id, reply_content, response_id: existing_response_id)
+    source_id = channel.reply_to_review(review_id, reply_content)
     message.update!(source_id: source_id) if source_id.present?
     Messages::StatusUpdateService.new(message, 'delivered').perform
   rescue StandardError => e
@@ -32,14 +32,5 @@ class AppStore::SendOnAppStoreService < Base::SendOnChannelService
 
   def reply_content
     message.outgoing_content.presence || message.content
-  end
-
-  def existing_response_id
-    message.conversation.messages
-           .outgoing
-           .where.not(id: message.id)
-           .where.not(source_id: [nil, ''])
-           .order(created_at: :desc)
-           .pick(:source_id)
   end
 end

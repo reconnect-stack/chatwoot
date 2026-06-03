@@ -7,14 +7,18 @@ class AppStoreConnect::Client
     get("/v1/apps/#{channel.app_id}")['data']
   end
 
-  def fetch_reviews
+  def fetch_reviews(since: nil)
     reviews = []
     next_url = nil
 
     loop do
       payload = next_url ? get_url(next_url) : get(reviews_path, reviews_query)
       included = Array(payload['included'])
-      reviews.concat(Array(payload['data']).map { |review| normalize_review(review, included) })
+      review_payloads = Array(payload['data']).map { |review| normalize_review(review, included) }
+      fresh_payloads = fresh_review_payloads(review_payloads, since)
+      reviews.concat(fresh_payloads)
+
+      break if since.present? && fresh_payloads.size < review_payloads.size
 
       next_url = payload.dig('links', 'next')
       break if next_url.blank?
@@ -24,10 +28,10 @@ class AppStoreConnect::Client
   end
 
   def create_review_response(review_id, response_body)
-    post('/v1/customerReviewResponses', review_response_payload(review_id, response_body))['data']
+    create_or_update_review_response(review_id, response_body)
   end
 
-  def update_review_response(review_id, response_body)
+  def create_or_update_review_response(review_id, response_body)
     post('/v1/customerReviewResponses', review_response_payload(review_id, response_body))['data']
   end
 
@@ -53,6 +57,21 @@ class AppStoreConnect::Client
       'review' => review,
       'response' => response
     }
+  end
+
+  def fresh_review_payloads(review_payloads, since)
+    return review_payloads if since.blank?
+
+    review_payloads.select { |review_payload| review_created_after?(review_payload, since) }
+  end
+
+  def review_created_after?(review_payload, since)
+    created_at = Time.zone.parse(review_payload.dig('review', 'attributes', 'createdDate').to_s)
+    return true if created_at.blank?
+
+    created_at > since
+  rescue StandardError
+    true
   end
 
   def get(path, query = {})

@@ -32,15 +32,11 @@ class Channel::AppStore < ApplicationRecord
   end
 
   def fetch_reviews
-    app_store_client.fetch_reviews
+    app_store_client.fetch_reviews(since: last_synced_at)
   end
 
-  def reply_to_review(review_id, response_body, response_id: nil)
-    response = if response_id.present?
-                 app_store_client.update_review_response(review_id, response_body)
-               else
-                 app_store_client.create_review_response(review_id, response_body)
-               end
+  def reply_to_review(review_id, response_body)
+    response = app_store_client.create_or_update_review_response(review_id, response_body)
 
     response['id']
   end

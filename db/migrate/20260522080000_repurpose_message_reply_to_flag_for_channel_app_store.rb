@@ -15,6 +15,5 @@ class RepurposeMessageReplyToFlagForChannelAppStore < ActiveRecord::Migration[7.
 
     config.value = config.value.reject { |feature| feature['name'] == 'message_reply_to' }
     config.save!
-    GlobalConfig.clear_cache
   end
 end

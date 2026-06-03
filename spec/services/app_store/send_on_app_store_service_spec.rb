@@ -26,7 +26,7 @@ RSpec.describe AppStore::SendOnAppStoreService do
 
       described_class.new(message: message).perform
 
-      expect(channel).to have_received(:reply_to_review).with('review-1', 'Thanks', response_id: nil)
+      expect(channel).to have_received(:reply_to_review).with('review-1', 'Thanks')
       expect(message.reload.source_id).to eq('response-1')
       expect(Messages::StatusUpdateService).to have_received(:new).with(message, 'delivered')
     end
@@ -40,7 +40,7 @@ RSpec.describe AppStore::SendOnAppStoreService do
 
       described_class.new(message: message).perform
 
-      expect(channel).to have_received(:reply_to_review).with('review-1', 'Updated reply', response_id: 'response-1')
+      expect(channel).to have_received(:reply_to_review).with('review-1', 'Updated reply')
       expect(Messages::StatusUpdateService).to have_received(:new).with(message, 'delivered')
     end
 

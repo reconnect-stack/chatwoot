@@ -43,6 +43,9 @@ RSpec.describe AppStoreConnect::Client do
               {
                 id: 'review-1',
                 type: 'customerReviews',
+                attributes: {
+                  createdDate: '2026-05-20T10:00:00-00:00'
+                },
                 relationships: {
                   response: {
                     data: {
@@ -70,6 +73,41 @@ RSpec.describe AppStoreConnect::Client do
 
       expect(review_payload['review']['id']).to eq('review-1')
       expect(review_payload['response']['id']).to eq('response-1')
+    end
+
+    it 'stops fetching when a scheduled sync reaches already synced reviews' do
+      stub_request(:get, 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews')
+        .with(query: { include: 'response', limit: '200', sort: '-createdDate' })
+        .to_return(
+          status: 200,
+          body: {
+            data: [
+              {
+                id: 'review-1',
+                type: 'customerReviews',
+                attributes: {
+                  createdDate: '2026-05-20T10:00:00-00:00'
+                }
+              },
+              {
+                id: 'review-2',
+                type: 'customerReviews',
+                attributes: {
+                  createdDate: '2026-05-19T10:00:00-00:00'
+                }
+              }
+            ],
+            links: {
+              next: 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews?page=2'
+            }
+          }.to_json,
+          headers: { 'Content-Type' => 'application/json' }
+        )
+
+      review_payloads = described_class.new(channel: channel).fetch_reviews(since: Time.zone.parse('2026-05-20T00:00:00-00:00'))
+
+      expect(review_payloads.pluck('review').pluck('id')).to eq(['review-1'])
+      expect(WebMock).not_to have_requested(:get, 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews?page=2')
     end
 
     it 'fetches a fresh cached token for each request' do
@@ -141,8 +179,8 @@ RSpec.describe AppStoreConnect::Client do
     end
   end
 
-  describe '#update_review_response' do
-    it 'updates an existing response' do
+  describe '#create_or_update_review_response' do
+    it 'creates or updates a response for a review' do
       stub_request(:post, 'https://api.appstoreconnect.apple.com/v1/customerReviewResponses')
         .with(
           body: {
@@ -168,7 +206,7 @@ RSpec.describe AppStoreConnect::Client do
           headers: { 'Content-Type' => 'application/json' }
         )
 
-      response = described_class.new(channel: channel).update_review_response('review-1', 'Updated response')
+      response = described_class.new(channel: channel).create_or_update_review_response('review-1', 'Updated response')
 
       expect(response['id']).to eq('response-1')
     end
