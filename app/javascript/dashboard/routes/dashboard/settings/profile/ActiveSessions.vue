@@ -45,7 +45,10 @@ const sessionLabel = session => {
     );
   }
   if (!isUnknown(session.platform_name)) parts.push(session.platform_name);
-  return parts.join(' on ') || t('SESSION_LIMIT.UNKNOWN_DEVICE');
+  return (
+    parts.join(' on ') ||
+    t('PROFILE_SETTINGS.FORM.SESSIONS_SECTION.UNKNOWN_DEVICE')
+  );
 };
 
 const locationLabel = session => {
