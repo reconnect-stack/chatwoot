@@ -9,8 +9,7 @@ class AppStore::SendOnAppStoreService < Base::SendOnChannelService
     validate_feature_enabled!
     validate_message_support!
     source_id = channel.reply_to_review(review_id, reply_content)
-    message.update!(source_id: source_id) if source_id.present?
-    Messages::StatusUpdateService.new(message, 'delivered').perform
+    sync_response_message(source_id)
   rescue StandardError => e
     ChatwootExceptionTracker.new(e, account: message.account).capture_exception
     Messages::StatusUpdateService.new(message, 'failed', e.message).perform
@@ -32,5 +31,35 @@ class AppStore::SendOnAppStoreService < Base::SendOnChannelService
 
   def reply_content
     message.outgoing_content.presence || message.content
+  end
+
+  def existing_response_message(source_id)
+    return if source_id.blank?
+
+    message.conversation.messages.where.not(id: message.id).find_by(source_id: source_id)
+  end
+
+  def sync_response_message(source_id)
+    response_message = existing_response_message(source_id)
+
+    if response_message.present?
+      update_existing_response_message(response_message, source_id)
+      message.destroy!
+      Messages::StatusUpdateService.new(response_message, 'delivered').perform
+    else
+      message.update!(source_id: source_id) if source_id.present?
+      Messages::StatusUpdateService.new(message, 'delivered').perform
+    end
+  end
+
+  def update_existing_response_message(response_message, source_id)
+    content_attributes = (response_message.content_attributes || {}).deep_merge(
+      'external_echo' => true,
+      'app_store' => {
+        'response_id' => source_id
+      }
+    )
+
+    response_message.update!(content: reply_content, content_attributes: content_attributes)
   end
 end

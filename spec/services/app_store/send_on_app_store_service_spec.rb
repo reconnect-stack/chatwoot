@@ -32,16 +32,38 @@ RSpec.describe AppStore::SendOnAppStoreService do
     end
 
     it 'updates the existing App Store response when the conversation already has one' do
-      create(:message, message_type: :outgoing, inbox: inbox, conversation: conversation, account: inbox.account, content: 'Old reply',
-                       source_id: 'response-1')
+      existing_response = create(
+        :message,
+        message_type: :outgoing,
+        inbox: inbox,
+        conversation: conversation,
+        account: inbox.account,
+        content: 'Old reply',
+        source_id: 'response-1',
+        content_attributes: {
+          external_echo: true,
+          app_store: {
+            response_id: 'response-1',
+            response_state: 'PUBLISHED'
+          }
+        }
+      )
       message = create(:message, message_type: :outgoing, inbox: inbox, conversation: conversation, account: inbox.account, content: 'Updated reply')
 
       allow(channel).to receive(:reply_to_review).and_return('response-1')
 
-      described_class.new(message: message).perform
+      expect { described_class.new(message: message).perform }
+        .to change { conversation.messages.reload.count }.by(-1)
 
       expect(channel).to have_received(:reply_to_review).with('review-1', 'Updated reply')
-      expect(Messages::StatusUpdateService).to have_received(:new).with(message, 'delivered')
+      expect { message.reload }.to raise_error(ActiveRecord::RecordNotFound)
+      expect(existing_response.reload.content).to eq('Updated reply')
+      expect(existing_response.content_attributes['external_echo']).to be true
+      expect(existing_response.content_attributes['app_store']).to include(
+        'response_id' => 'response-1',
+        'response_state' => 'PUBLISHED'
+      )
+      expect(Messages::StatusUpdateService).to have_received(:new).with(existing_response, 'delivered')
     end
 
     it 'marks the message as failed when attachments are present' do
