@@ -69,9 +69,7 @@ class Enterprise::Billing::HandleStripeEventService
     )
   end
 
-  # Paid subscriptions are billed in real money, so their currency is
-  # authoritative and overrides the stored value. The default/free plan is $0
-  # and not currency-defining, so we preserve the account's chosen preference.
+  # Paid subscriptions define the currency; the free/default plan keeps the stored preference.
   def billing_currency_for(subscription, plan)
     return account.billing_currency if plan['name'] == Enterprise::Billing::PlanConfiguration.default_plan&.dig('name')
 

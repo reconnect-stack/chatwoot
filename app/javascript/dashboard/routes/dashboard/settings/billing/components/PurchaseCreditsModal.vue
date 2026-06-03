@@ -25,8 +25,7 @@ const selectedCredits = ref(null);
 const isLoading = ref(false);
 const currentStep = ref(STEP_SELECT);
 
-// Topup packages come from the backend (CHATWOOT_CLOUD_TOPUP_OPTIONS) for the
-// account's billing currency — only the relevant currency's options are shown.
+// Topup packages come from the backend for the account's billing currency.
 const topupOptions = ref([]);
 const optionsCurrency = ref(DEFAULT_BILLING_CURRENCY);
 const isFetchingOptions = ref(false);

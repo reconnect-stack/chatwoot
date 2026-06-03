@@ -7,8 +7,7 @@ class Enterprise::Billing::TopupCheckoutService
 
   pattr_initialize [:account!]
 
-  # Topup packages for the account's billing currency, used by the controller
-  # to render the same options the frontend offers.
+  # Topup packages for the account's billing currency (used by the controller).
   def available_options
     topup_options
   end

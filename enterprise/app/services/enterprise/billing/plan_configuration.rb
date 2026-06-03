@@ -1,11 +1,5 @@
-# Reads CHATWOOT_CLOUD_PLANS and resolves Stripe price ids in a currency-aware,
-# backward-compatible way. Owns all plan-shape parsing so the currency logic
-# isn't scattered across the billing services.
-#
-# A plan's `price_ids` may be:
-#   - a currency-keyed Hash: { 'usd' => ['price_x'], 'brl' => ['price_y'] }
-#   - a flat Array (legacy):  ['price_x']           -> treated as usd
-#   - a bare String (legacy): 'price_x'            -> treated as usd
+# Resolves Stripe price ids from CHATWOOT_CLOUD_PLANS per currency.
+# A plan's `price_ids` may be a currency-keyed Hash, or a legacy Array/String (treated as usd).
 module Enterprise::Billing::PlanConfiguration
   CLOUD_PLANS_CONFIG = 'CHATWOOT_CLOUD_PLANS'.freeze
 
@@ -29,8 +23,7 @@ module Enterprise::Billing::PlanConfiguration
     end
   end
 
-  # Price id to subscribe `plan` in `currency`. Falls back to usd, then to any
-  # configured price, so a free plan with only a usd price still resolves.
+  # Price id for `plan` in `currency`, falling back to usd then any configured price.
   def price_id_for(plan, currency)
     by_currency = price_ids_by_currency(plan)
     code = Enterprise::Billing::Currencies.coerce(currency)
@@ -44,7 +37,7 @@ module Enterprise::Billing::PlanConfiguration
     price_ids_by_currency(plan).values.flatten.compact.include?(price_id)
   end
 
-  # Webhook currency inference: [plan, currency] for a given price id, or [nil, nil].
+  # [plan, currency] for a price id, else [nil, nil].
   def find_plan_by_price_id(price_id)
     plans.each do |plan|
       price_ids_by_currency(plan).each do |currency, ids|

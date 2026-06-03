@@ -23,9 +23,7 @@ module BillingHelper
     account.users.count
   end
 
-  # current_period_end moved from the subscription top-level to the subscription
-  # item in recent Stripe API versions — read both so the paid-through date is
-  # never lost.
+  # current_period_end moved to the subscription item in newer Stripe API versions; read both.
   def subscription_period_end(subscription)
     subscription['current_period_end'] || subscription['items']['data'].first&.[]('current_period_end')
   end

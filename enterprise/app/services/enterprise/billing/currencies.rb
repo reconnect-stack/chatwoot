@@ -1,19 +1,14 @@
-# Single source of truth for the billing currencies Chatwoot Cloud supports.
-# Adding a new currency (e.g. EUR) is a one-line edit here plus the matching
-# price_ids in CHATWOOT_CLOUD_PLANS and rates in CHATWOOT_CLOUD_TOPUP_OPTIONS.
+# Supported billing currencies and their Stripe/locale mappings.
 module Enterprise::Billing::Currencies
   DEFAULT = 'usd'.freeze
 
   SUPPORTED = %w[usd brl].freeze
 
-  # Account locale label (the enum label, e.g. 'pt_BR') => default currency.
-  # Anything not listed falls back to DEFAULT.
+  # Account locale label (e.g. 'pt_BR') => default currency; unlisted falls back to DEFAULT.
   LOCALE_DEFAULTS = {
     'pt_BR' => 'brl'
   }.freeze
 
-  # Used to keep the Stripe customer's location/currency in sync with the
-  # account's billing currency.
   COUNTRY_BY_CURRENCY = {
     'usd' => 'US',
     'brl' => 'BR'
