@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useI18n, I18nT } from 'vue-i18n';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ChannelIcon from 'dashboard/components-next/icon/ChannelIcon.vue';
+import { FALLBACK_PREVIEW_CHANNELS } from './constants';
 
 const props = defineProps({
   remainingChannels: { type: Array, default: () => [] },
@@ -15,16 +16,6 @@ const { t } = useI18n();
 // Icons shown next to "View all". Defaults to the unconnected socials, but when
 // everything detected is already connected we still want a hint of what's
 // behind the dialog — fall back to a representative trio.
-// TODO: Refactor this to source channel details from a common source, so that all we need is the name
-const FALLBACK_PREVIEW_CHANNELS = [
-  {
-    type: 'gmail',
-    inbox: { channel_type: 'Channel::Email', provider: 'google' },
-  },
-  { type: 'tiktok', inbox: { channel_type: 'Channel::Tiktok' } },
-  { type: 'whatsapp', inbox: { channel_type: 'Channel::Whatsapp' } },
-];
-
 const previewChannels = computed(() =>
   props.remainingChannels.length
     ? props.remainingChannels

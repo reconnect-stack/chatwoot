@@ -17,6 +17,7 @@ import ChannelRow from './inbox-setup/ChannelRow.vue';
 import WebWidgetCreationStatus from './inbox-setup/WebWidgetCreationStatus.vue';
 import HelpCenterCreationStatus from './inbox-setup/HelpCenterCreationStatus.vue';
 import { useChannelConnect } from './inbox-setup/useChannelConnect';
+import { SOCIAL_PLATFORMS, EMAIL_PROVIDERS } from './inbox-setup/constants';
 
 const { t } = useI18n();
 const store = useStore();
@@ -41,17 +42,6 @@ const featuredApps = computed(() =>
     integrations.value.find(item => item.id === id)
   ).filter(Boolean)
 );
-
-// Brand-info socials are populated by the website branding service after
-// signup. Keys here mirror SocialLinkParser::SOCIAL_DOMAIN_MAP.
-const SOCIAL_PLATFORMS = {
-  whatsapp: { label: 'WhatsApp', channelType: 'Channel::Whatsapp' },
-  facebook: { label: 'Facebook', channelType: 'Channel::FacebookPage' },
-  line: { label: 'Line', channelType: 'Channel::Line' },
-  instagram: { label: 'Instagram', channelType: 'Channel::Instagram' },
-  telegram: { label: 'Telegram', channelType: 'Channel::Telegram' },
-  tiktok: { label: 'TikTok', channelType: 'Channel::Tiktok' },
-};
 
 const extractHandle = ({ type, url }) => {
   try {
@@ -82,14 +72,6 @@ const connectedChannels = computed(() =>
       inbox: { channel_type: SOCIAL_PLATFORMS[social.type].channelType },
     }))
 );
-
-// Mailbox provider inferred from the signup domain's MX records by the website
-// branding service. Values mirror Channel::Email#provider so ChannelIcon can
-// render the matching Gmail/Outlook brand.
-const EMAIL_PROVIDERS = {
-  google: { label: 'Gmail' },
-  microsoft: { label: 'Outlook' },
-};
 
 const detectedEmailChannel = computed(() => {
   const brandInfo = currentAccount.value?.custom_attributes?.brand_info;

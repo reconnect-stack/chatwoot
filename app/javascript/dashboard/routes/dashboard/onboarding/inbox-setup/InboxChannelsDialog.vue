@@ -6,6 +6,7 @@ import Dialog from 'dashboard/components-next/dialog/Dialog.vue';
 import Icon from 'dashboard/components-next/icon/Icon.vue';
 import ChannelIcon from 'dashboard/components-next/icon/ChannelIcon.vue';
 import { useChannelConnect } from './useChannelConnect';
+import { CHANNEL_LIST } from './constants';
 import InboxChannelForm from './InboxChannelForm.vue';
 import InboxFacebookForm from './InboxFacebookForm.vue';
 
@@ -109,89 +110,6 @@ const dialogDescription = computed(() => {
   }
   return t('ONBOARDING_INBOX_SETUP.CHANNELS_DIALOG.CONNECT_SUBTITLE');
 });
-
-// `inbox` is a stub shaped like a real inbox so ChannelIcon can resolve the
-// icon from the shared provider. With `use-brand-icon`, ChannelIcon renders the
-// full-color brand logo when one exists and falls back to the monochrome glyph
-// otherwise, so no per-channel style flag is needed. Entries without a channel
-// type (Voice, Other Email Providers) render `fallbackIcon` instead.
-const CHANNEL_LIST = [
-  {
-    type: 'website',
-    label: 'Website',
-    inbox: { channel_type: 'Channel::WebWidget' },
-  },
-  {
-    type: 'whatsapp',
-    label: 'WhatsApp',
-    inbox: { channel_type: 'Channel::Whatsapp' },
-  },
-  {
-    type: 'instagram',
-    label: 'Instagram',
-    inbox: { channel_type: 'Channel::Instagram' },
-  },
-  {
-    type: 'facebook',
-    label: 'Facebook',
-    inbox: { channel_type: 'Channel::FacebookPage' },
-  },
-  {
-    type: 'tiktok',
-    label: 'TikTok',
-    inbox: { channel_type: 'Channel::Tiktok' },
-  },
-  {
-    type: 'telegram',
-    label: 'Telegram',
-    inbox: { channel_type: 'Channel::Telegram' },
-    form: true,
-  },
-  {
-    type: 'line',
-    label: 'LINE',
-    inbox: { channel_type: 'Channel::Line' },
-    form: true,
-  },
-  // Email channels (including Gmail/Outlook OAuth) are set up later in-app for
-  // this phase; they will be enabled in a future PR.
-  {
-    type: 'gmail',
-    label: 'Gmail',
-    inbox: { channel_type: 'Channel::Email', provider: 'google' },
-    setupLater: true,
-  },
-  {
-    type: 'outlook',
-    label: 'Outlook',
-    inbox: { channel_type: 'Channel::Email', provider: 'microsoft' },
-    setupLater: true,
-  },
-  {
-    type: 'sms',
-    label: 'SMS',
-    inbox: { channel_type: 'Channel::Sms' },
-    setupLater: true,
-  },
-  {
-    type: 'api',
-    label: 'API',
-    inbox: { channel_type: 'Channel::Api' },
-    setupLater: true,
-  },
-  {
-    type: 'voice',
-    label: 'Voice',
-    fallbackIcon: 'i-woot-voice',
-    setupLater: true,
-  },
-  {
-    type: 'email',
-    label: 'Other Email Providers',
-    fallbackIcon: 'i-woot-mail',
-    setupLater: true,
-  },
-];
 
 // A channel is connected when a real inbox shares its channel_type. Gmail and
 // Outlook both use Channel::Email, so for email we also match on provider.
