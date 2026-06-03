@@ -233,6 +233,7 @@
       "TIP_AUDIORECORDER_ERROR": "Zvuk se nepodařilo otevřít",
       "AUDIO_CONVERSION_FAILED": "Audio conversion failed. Please try again.",
       "DRAG_DROP": "Přetažením sem připojíte",
+      "IMAGE_UPLOAD_SUCCESS": "Image uploaded successfully",
       "START_AUDIO_RECORDING": "Spustit nahrávání zvuku",
       "STOP_AUDIO_RECORDING": "Zastavit nahrávání zvuku",
       "COPILOT_THINKING": "Copilot přemýšlí",
