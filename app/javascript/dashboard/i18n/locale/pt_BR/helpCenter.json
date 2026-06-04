@@ -700,13 +700,13 @@
           "MAKE_DEFAULT": "Tornar padrão",
           "MOVE_TO_DRAFT": "Mover para rascunho",
           "PUBLISH_LOCALE": "Publicar localidade",
-          "CUSTOMIZE_CONTENT": "Localize content",
+          "CUSTOMIZE_CONTENT": "Localizar conteúdo",
           "DELETE": "Excluir"
         }
       },
       "CONTENT_DIALOG": {
-        "TITLE": "Localize content",
-        "DESCRIPTION": "Set values specific to this locale. Anything left blank falls back to the default locale.",
+        "TITLE": "Localizar conteúdo",
+        "DESCRIPTION": "Defina valores específicos para este idioma. Qualquer campo deixado em branco utilizará o idioma padrão.",
         "NAME": {
           "LABEL": "Nome"
         },
@@ -717,8 +717,8 @@
           "LABEL": "Texto do Cabeçalho"
         },
         "API": {
-          "SUCCESS_MESSAGE": "Locale content updated successfully",
-          "ERROR_MESSAGE": "Unable to update locale content. Try again."
+          "SUCCESS_MESSAGE": "Conteúdo do idioma atualizado com sucesso",
+          "ERROR_MESSAGE": "Não foi possível atualizar o conteúdo do idioma. Tente novamente."
         }
       },
       "ADD_LOCALE_DIALOG": {
