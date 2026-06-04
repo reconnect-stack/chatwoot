@@ -700,7 +700,25 @@
           "MAKE_DEFAULT": "기본값으로 설정",
           "MOVE_TO_DRAFT": "Move to draft",
           "PUBLISH_LOCALE": "Publish locale",
+          "CUSTOMIZE_CONTENT": "Localize content",
           "DELETE": "삭제"
+        }
+      },
+      "CONTENT_DIALOG": {
+        "TITLE": "Localize content",
+        "DESCRIPTION": "Set values specific to this locale. Anything left blank falls back to the default locale.",
+        "NAME": {
+          "LABEL": "이름"
+        },
+        "PAGE_TITLE": {
+          "LABEL": "페이지 제목"
+        },
+        "HEADER_TEXT": {
+          "LABEL": "헤더 텍스트"
+        },
+        "API": {
+          "SUCCESS_MESSAGE": "Locale content updated successfully",
+          "ERROR_MESSAGE": "Unable to update locale content. Try again."
         }
       },
       "ADD_LOCALE_DIALOG": {
