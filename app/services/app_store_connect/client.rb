@@ -18,8 +18,6 @@ class AppStoreConnect::Client
       fresh_payloads = fresh_review_payloads(review_payloads, since)
       reviews.concat(fresh_payloads)
 
-      break if since.present? && fresh_payloads.size < review_payloads.size
-
       next_url = payload.dig('links', 'next')
       break if next_url.blank?
     end

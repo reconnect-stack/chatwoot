@@ -75,39 +75,17 @@ RSpec.describe AppStoreConnect::Client do
       expect(review_payload['response']['id']).to eq('response-1')
     end
 
-    it 'stops fetching when a scheduled sync reaches already synced reviews' do
+    it 'keeps fetching older pages so updated developer responses are not skipped' do
       stub_request(:get, 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews')
         .with(query: { include: 'response', limit: '200', sort: '-createdDate' })
-        .to_return(
-          status: 200,
-          body: {
-            data: [
-              {
-                id: 'review-1',
-                type: 'customerReviews',
-                attributes: {
-                  createdDate: '2026-05-20T10:00:00-00:00'
-                }
-              },
-              {
-                id: 'review-2',
-                type: 'customerReviews',
-                attributes: {
-                  createdDate: '2026-05-19T10:00:00-00:00'
-                }
-              }
-            ],
-            links: {
-              next: 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews?page=2'
-            }
-          }.to_json,
-          headers: { 'Content-Type' => 'application/json' }
-        )
+        .to_return(app_store_response(mixed_freshness_reviews_page))
+      stub_request(:get, 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews?page=2')
+        .to_return(app_store_response(older_reviews_page_with_updated_response))
 
       review_payloads = described_class.new(channel: channel).fetch_reviews(since: Time.zone.parse('2026-05-20T00:00:00-00:00'))
 
-      expect(review_payloads.pluck('review').pluck('id')).to eq(['review-1'])
-      expect(WebMock).not_to have_requested(:get, 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews?page=2')
+      expect(review_payloads.pluck('review').pluck('id')).to eq(%w[review-1 review-3])
+      expect(WebMock).to have_requested(:get, 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews?page=2')
     end
 
     it 'includes older reviews when the developer response was updated after the sync cursor' do
@@ -186,6 +164,67 @@ RSpec.describe AppStoreConnect::Client do
       described_class.new(channel: channel).fetch_reviews
 
       expect(AppStoreConnect::TokenService).to have_received(:new).twice
+    end
+
+    def app_store_response(body)
+      {
+        status: 200,
+        body: body.to_json,
+        headers: { 'Content-Type' => 'application/json' }
+      }
+    end
+
+    def mixed_freshness_reviews_page
+      {
+        data: [
+          {
+            id: 'review-1',
+            type: 'customerReviews',
+            attributes: { createdDate: '2026-05-20T10:00:00-00:00' }
+          },
+          {
+            id: 'review-2',
+            type: 'customerReviews',
+            attributes: { createdDate: '2026-05-19T10:00:00-00:00' }
+          }
+        ],
+        links: {
+          next: 'https://api.appstoreconnect.apple.com/v1/apps/123456789/customerReviews?page=2'
+        }
+      }
+    end
+
+    def older_reviews_page_with_updated_response
+      {
+        data: [
+          {
+            id: 'review-3',
+            type: 'customerReviews',
+            attributes: { createdDate: '2026-05-18T10:00:00-00:00' },
+            relationships: response_relationship('response-3')
+          }
+        ],
+        included: [updated_response_payload]
+      }
+    end
+
+    def response_relationship(response_id)
+      {
+        response: {
+          data: { id: response_id, type: 'customerReviewResponses' }
+        }
+      }
+    end
+
+    def updated_response_payload
+      {
+        id: 'response-3',
+        type: 'customerReviewResponses',
+        attributes: {
+          responseBody: 'Updated response',
+          lastModifiedDate: '2026-05-20T11:00:00-00:00'
+        }
+      }
     end
   end
 
