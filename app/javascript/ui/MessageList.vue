@@ -96,7 +96,8 @@ onMounted(async () => {
     store.dispatch('fetchAllAttachments', conversationId.value),
     // agents and teams power the @mention dropdown on private notes
     store.dispatch('agents/get'),
-    store.dispatch('teams/get'),
+    // teams/get rethrows on failure; don't let it break the conversation load
+    store.dispatch('teams/get').catch(() => {}),
   ]);
 
   await fetchConversationInbox();
