@@ -700,7 +700,25 @@
           "MAKE_DEFAULT": "Tornar padrão",
           "MOVE_TO_DRAFT": "Mover para rascunho",
           "PUBLISH_LOCALE": "Publicar localidade",
+          "CUSTOMIZE_CONTENT": "Localize content",
           "DELETE": "Excluir"
+        }
+      },
+      "CONTENT_DIALOG": {
+        "TITLE": "Localize content",
+        "DESCRIPTION": "Set values specific to this locale. Anything left blank falls back to the default locale.",
+        "NAME": {
+          "LABEL": "Nome"
+        },
+        "PAGE_TITLE": {
+          "LABEL": "Título da Página"
+        },
+        "HEADER_TEXT": {
+          "LABEL": "Texto do Cabeçalho"
+        },
+        "API": {
+          "SUCCESS_MESSAGE": "Locale content updated successfully",
+          "ERROR_MESSAGE": "Unable to update locale content. Try again."
         }
       },
       "ADD_LOCALE_DIALOG": {
