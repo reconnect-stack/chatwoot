@@ -72,8 +72,7 @@ module Enterprise::Account
     stored = custom_attributes&.dig('billing_currency')
     return Enterprise::Billing::Currencies.normalize(stored) if Enterprise::Billing::Currencies.supported?(stored)
 
-    # Existing Stripe customers stay on USD (webhook backfills the real currency);
-    # only brand-new accounts infer from locale, so existing pt_BR users aren't charged BRL.
+    # Existing Stripe customers stay on USD (webhook backfills); only new accounts infer from locale.
     return Enterprise::Billing::Currencies::DEFAULT if custom_attributes&.dig('stripe_customer_id').present?
 
     Enterprise::Billing::Currencies.for_locale(locale)

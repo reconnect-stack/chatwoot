@@ -1,7 +1,4 @@
 // Single source of truth for billing currencies on the frontend.
-// Adding a currency = one entry in BILLING_CURRENCY_CONFIG, add the code to
-// SUPPORTED_BILLING_CURRENCIES, and add its label key under
-// BILLING_SETTINGS.CURRENCY.OPTIONS in the locale files.
 
 export const DEFAULT_BILLING_CURRENCY = 'usd';
 

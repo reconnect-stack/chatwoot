@@ -147,8 +147,7 @@ export const actions = {
     commit(types.default.SET_ACCOUNT_UI_FLAG, { isSwitchingCurrency: true });
     try {
       await EnterpriseAccountAPI.switchCurrency(currency);
-      // Refresh the account so custom_attributes.billing_currency and the
-      // subscription details reflect the new currency.
+      // Refresh the account so billing_currency and subscription details reflect the switch.
       await dispatch('get', { silent: true });
     } catch (error) {
       throwErrorMessage(error);

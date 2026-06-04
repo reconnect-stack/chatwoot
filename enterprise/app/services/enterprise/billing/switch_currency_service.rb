@@ -3,10 +3,7 @@ class Enterprise::Billing::SwitchCurrencyService
 
   class Error < StandardError; end
 
-  # Tagged on a subscription right before we cancel it for a currency switch, so
-  # the customer.subscription.deleted webhook knows NOT to re-subscribe the
-  # default plan (which would create a stray Hacker sub and block the new
-  # currency). Read by HandleStripeEventService#process_subscription_deleted.
+  # Tags a cancelled sub so the deleted-webhook skips re-subscribing the default plan.
   SWITCH_METADATA_KEY = 'chatwoot_currency_switch'.freeze
 
   pattr_initialize [:account!, :currency!]
@@ -36,18 +33,13 @@ class Enterprise::Billing::SwitchCurrencyService
     raise Error, I18n.t('errors.billing.stripe_customer_not_configured') if stripe_customer_id.blank?
   end
 
-  # Free plan ($0): no subscription churn — just record the preference and keep
-  # the Stripe customer location/currency in sync for future upgrades/top-ups.
+  # Free plan: no subscription churn — record the preference and sync the Stripe customer.
   def switch_free_plan
     sync_stripe_customer_location
     persist_currency(account.custom_attributes.merge('billing_currency' => target_currency))
   end
 
-  # Cancel every live subscription and create ONE subscription for the current
-  # paid plan in the target currency, preserving the seat count and the
-  # already-paid-through date. Decisions are based on the actual Stripe state
-  # (not stored attributes) so a messy/duplicated state converges to a single
-  # correct subscription.
+  # Replace all live subs with one paid sub in the target currency, preserving seats and paid-through.
   def switch_paid_plan(subscriptions, paid_subscription)
     validate_payment_method!
 
@@ -81,16 +73,8 @@ class Enterprise::Billing::SwitchCurrencyService
     plan || Enterprise::Billing::PlanConfiguration.find_plan_by_product_id(subscription['plan']['product'])
   end
 
-  # Cancel all current subscriptions (tagged so the deleted-webhook leaves them
-  # alone) and create the new-currency subscription. On failure, restore the
-  # original paid plan/currency so the account is never left without one.
-  #
-  # Stripe constraints (verified in test mode):
-  # - prorate:false — currencies can't combine on one customer; a proration
-  #   item in the old currency would block the new sub.
-  # - trial_end = current paid-through date — preserves already-paid time (no
-  #   money lost) and makes switching back and forth before the next cycle free
-  #   (each switch just re-creates the sub trialing until the same date).
+  # Cancel old subs, create the new-currency sub; revert to the original plan on failure.
+  # prorate:false (Stripe can't mix currencies); trial_end keeps the already-paid time.
   def replace_subscriptions(subscriptions, change)
     cancel_subscriptions(subscriptions)
 
@@ -145,9 +129,7 @@ class Enterprise::Billing::SwitchCurrencyService
     )
   end
 
-  # Active and trialing subscriptions. A prior currency switch leaves the new
-  # sub trialing until the carried-over paid-through date, so trialing must be
-  # included to switch again from that state.
+  # Includes trialing — a prior switch leaves the new sub trialing until its paid-through date.
   def live_subscriptions
     Stripe::Subscription.list(customer: stripe_customer_id, status: 'all', limit: 100).data
                         .select { |subscription| %w[active trialing past_due].include?(subscription.status) }

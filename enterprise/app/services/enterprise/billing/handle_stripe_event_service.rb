@@ -28,9 +28,7 @@ class Enterprise::Billing::HandleStripeEventService
 
     # skipping self hosted plan events
     return if plan.blank? || account.blank?
-    # A subscription tagged for a currency switch is being cancelled by
-    # SwitchCurrencyService, which writes the final state itself — ignore its
-    # interim webhook events so they don't overwrite the new currency.
+    # SwitchCurrencyService writes the final state itself — ignore its interim webhook events.
     return if currency_switch_cancellation?
 
     previous_usage = capture_previous_usage
@@ -88,9 +86,7 @@ class Enterprise::Billing::HandleStripeEventService
   def process_subscription_deleted
     # skipping self hosted plan events
     return if account.blank?
-    # A currency switch cancels the old subscription itself and creates the new
-    # one. Don't re-subscribe the default plan here — it would create a stray
-    # default-plan sub and block the new currency ("cannot combine currencies").
+    # A currency switch handles its own re-subscription; skip to avoid a stray default-plan sub.
     return if currency_switch_cancellation?
 
     previous_monthly_credits = current_plan_credits[:responses]
