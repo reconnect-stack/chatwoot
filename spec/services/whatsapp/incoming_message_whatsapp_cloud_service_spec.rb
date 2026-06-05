@@ -257,6 +257,41 @@ describe Whatsapp::IncomingMessageWhatsappCloudService do
         end
       end
     end
+
+    context 'when an echo (coexistence) message arrives for a Brazil number missing the 9th digit' do
+      let(:echo_params) do
+        {
+          object: 'whatsapp_business_account',
+          entry: [{
+            changes: [{
+              field: 'smb_message_echoes',
+              value: {
+                message_echoes: [{
+                  from: whatsapp_channel.phone_number.delete('+'),
+                  to: '551112345678',
+                  id: 'wamid.ECHO_MESSAGE_ID',
+                  timestamp: '1664799904',
+                  text: { body: 'Reply from the WhatsApp app' },
+                  type: 'text'
+                }]
+              }
+            }]
+          }]
+        }.with_indifferent_access
+      end
+
+      it 'reuses the existing contact stored with the normalized phone number instead of duplicating it' do
+        existing_contact = create(:contact, phone_number: '+5511912345678', account: whatsapp_channel.account)
+
+        expect do
+          described_class.new(inbox: whatsapp_channel.inbox, params: echo_params, outgoing_echo: true).perform
+        end.not_to change(Contact, :count)
+
+        conversation = whatsapp_channel.inbox.conversations.last
+        expect(conversation.contact).to eq(existing_contact)
+        expect(conversation.messages.last.content).to eq('Reply from the WhatsApp app')
+      end
+    end
   end
 
   # Métodos auxiliares para reduzir o tamanho do exemplo
