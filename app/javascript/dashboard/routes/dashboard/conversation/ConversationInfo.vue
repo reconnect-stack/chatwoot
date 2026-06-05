@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { getLanguageName } from 'dashboard/components/widgets/conversation/advancedFilterItems/languages';
 import ContactDetailsItem from './ContactDetailsItem.vue';
 import CustomAttributes from './customAttributes/CustomAttributes.vue';
@@ -13,8 +14,13 @@ const props = defineProps({
     type: Object,
     default: () => ({}),
   },
+  referralAttributes: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 
+const { t } = useI18n();
 const referer = computed(() => props.conversationAttributes.referer);
 const initiatedAt = computed(
   () => props.conversationAttributes.initiated_at?.timestamp
@@ -41,6 +47,35 @@ const platformName = computed(() => {
 });
 
 const createdAtIp = computed(() => props.contactAttributes.created_at_ip);
+const hasReferral = computed(
+  () => Object.keys(props.referralAttributes || {}).length > 0
+);
+const referralTitle = computed(
+  () => props.referralAttributes.headline || props.referralAttributes.source_id
+);
+const referralFields = computed(() =>
+  [
+    {
+      label: t('CONTACT_PANEL.AD_REFERRAL.SOURCE_TYPE'),
+      value: props.referralAttributes.source_type,
+    },
+    {
+      label: t('CONTACT_PANEL.AD_REFERRAL.SOURCE_ID'),
+      value: props.referralAttributes.source_id,
+    },
+    {
+      label: t('CONTACT_PANEL.AD_REFERRAL.CTWA_CLID'),
+      value: props.referralAttributes.ctwa_clid,
+    },
+  ].filter(field => !!field.value)
+);
+const referralMediaUrl = computed(
+  () =>
+    props.referralAttributes.thumbnail_url ||
+    props.referralAttributes.image_url ||
+    props.referralAttributes.video_url
+);
+const referralSourceUrl = computed(() => props.referralAttributes.source_url);
 
 const staticElements = computed(() =>
   [
@@ -86,6 +121,57 @@ const staticElements = computed(() =>
 
 <template>
   <div class="conversation--details">
+    <div v-if="hasReferral" class="px-4 pt-3 pb-4 border-b border-n-weak">
+      <div class="flex items-center gap-2 mb-3">
+        <i class="i-lucide-megaphone size-4 text-n-brand" />
+        <span class="text-sm font-medium text-n-slate-12">
+          {{ $t('CONTACT_PANEL.AD_REFERRAL.TITLE') }}
+        </span>
+      </div>
+      <a
+        v-if="referralMediaUrl"
+        :href="referralMediaUrl"
+        target="_blank"
+        rel="noopener noreferrer nofollow"
+        class="block mb-3 overflow-hidden rounded-md border border-n-weak bg-n-alpha-1"
+      >
+        <img
+          :src="referralMediaUrl"
+          :alt="$t('CONTACT_PANEL.AD_REFERRAL.MEDIA_PREVIEW')"
+          class="object-cover w-full max-h-40"
+        />
+      </a>
+      <div class="flex flex-col gap-2">
+        <div v-if="referralTitle" class="text-sm font-medium text-n-slate-12">
+          {{ referralTitle }}
+        </div>
+        <div v-if="referralAttributes.body" class="text-sm text-n-slate-11">
+          {{ referralAttributes.body }}
+        </div>
+        <div
+          v-for="field in referralFields"
+          :key="field.label"
+          class="flex flex-col gap-0.5"
+        >
+          <span class="text-xs text-n-slate-10">
+            {{ field.label }}
+          </span>
+          <span class="text-sm break-words text-n-slate-12">
+            {{ field.value }}
+          </span>
+        </div>
+        <a
+          v-if="referralSourceUrl"
+          :href="referralSourceUrl"
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          class="inline-flex items-center gap-1 text-sm text-n-brand hover:underline"
+        >
+          {{ $t('CONTACT_PANEL.AD_REFERRAL.VIEW_SOURCE') }}
+          <i class="i-lucide-external-link size-3" />
+        </a>
+      </div>
+    </div>
     <CustomAttributes
       :static-elements="staticElements"
       attribute-class="conversation--attribute"
