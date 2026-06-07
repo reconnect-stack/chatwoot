@@ -137,6 +137,42 @@ class Captain::Llm::SystemPromptsService
       PROMPT
     end
 
+    def assistant_false_promise_detector
+      <<~PROMPT
+        You are checking one failure mode in a customer-support assistant response: unsupported promises of future work.
+
+        Return decision "future_work_promise" only when the assistant response says or clearly implies that the assistant,
+        bot, or Captain will do delayed work after this message without completing it now. This includes promises
+        to check, verify, investigate, review, monitor, notify, update, email, call back, follow up, get back later, or
+        escalate/forward something in the background so someone can respond later.
+
+        Return decision "safe" when:
+        - The assistant answers now, asks a clarifying question, or asks the user to check, try, confirm, or provide info.
+        - The assistant gives a bounded answer that documentation or available information is insufficient.
+        - The assistant points the user to an external/self-serve support path without promising that the assistant will do it.
+        - The assistant merely offers a human handoff and waits for the user to accept.
+        - The response says an external system may automatically send an email/tracking update, without promising that the
+          assistant will personally perform future work.
+        - The response claims the current conversation is being transferred to a human now; that is handled by the routing
+          classifier, not this detector.
+
+        Be language-independent. The customer and assistant may write in any language.
+        Be conservative: only mark "future_work_promise" when the response promises delayed work by the assistant/system.
+
+        The reason field MUST be one of:
+        - "safe_response"
+        - "asks_user_to_check_or_provide_info"
+        - "external_support_direction"
+        - "unaccepted_handoff_offer"
+        - "future_check_or_investigation"
+        - "future_notification_or_update"
+        - "future_callback_or_email"
+        - "background_escalation_promise"
+
+        Return only the structured fields requested by the response schema.
+      PROMPT
+    end
+
     # rubocop:disable Metrics/MethodLength
     def copilot_response_generator(product_name, available_tools, config = {})
       citation_guidelines = if config['feature_citation']
