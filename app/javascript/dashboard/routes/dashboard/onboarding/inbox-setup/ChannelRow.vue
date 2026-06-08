@@ -53,11 +53,7 @@ const connectedName = computed(
       @click="$emit('connect', channel)"
     >
       <span class="truncate">
-        {{
-          t('ONBOARDING_INBOX_SETUP.CHANNELS.CONNECT', {
-            name: channel.handle || channel.label,
-          })
-        }}
+        {{ t('ONBOARDING_INBOX_SETUP.CHANNELS.CONNECT') }}
       </span>
     </button>
   </div>

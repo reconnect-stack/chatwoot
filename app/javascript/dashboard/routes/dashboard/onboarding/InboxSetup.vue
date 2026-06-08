@@ -33,8 +33,12 @@ const isSubmitting = ref(false);
 
 const inboxes = useMapGetter('inboxes/getInboxes');
 
-const { displayedChannels, remainingChannels, connectedInbox } =
-  useDetectedChannels();
+const {
+  displayedChannels,
+  remainingChannels,
+  connectedInbox,
+  hasDetectedChannels,
+} = useDetectedChannels();
 
 const channelsDialogRef = ref(null);
 
@@ -119,6 +123,20 @@ const connectChannel = channel => {
         :title="t('ONBOARDING_INBOX_SETUP.CHANNELS.TITLE')"
         icon="i-lucide-inbox"
       >
+        <div
+          v-if="hasDetectedChannels"
+          class="flex items-center gap-2 p-3 border-b border-dashed border-n-strong"
+        >
+          <Icon
+            icon="i-lucide-lightbulb"
+            class="size-4 text-n-slate-11 flex-shrink-0"
+          />
+          <span
+            class="flex-1 min-w-0 text-sm font-420 leading-[21px] tracking-[-0.28px] text-n-slate-11"
+          >
+            {{ t('ONBOARDING_INBOX_SETUP.CHANNELS.HEADER') }}
+          </span>
+        </div>
         <ChannelRow
           v-for="channel in displayedChannels"
           :key="channel.type"

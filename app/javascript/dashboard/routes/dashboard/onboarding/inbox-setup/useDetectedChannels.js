@@ -127,5 +127,12 @@ export function useDetectedChannels() {
       }));
   });
 
-  return { displayedChannels, remainingChannels, connectedInbox };
+  const hasDetectedChannels = computed(() => detectedChannels.value.length > 0);
+
+  return {
+    displayedChannels,
+    remainingChannels,
+    connectedInbox,
+    hasDetectedChannels,
+  };
 }

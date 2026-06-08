@@ -49,9 +49,7 @@ namespace :onboarding do # rubocop:disable Metrics/BlockLength
     account.custom_attributes['brand_info']['socials'] = [
       { 'type' => 'whatsapp', 'url' => 'https://wa.me/14155552671' },
       { 'type' => 'facebook', 'url' => 'https://facebook.com/chatwoot' },
-      { 'type' => 'telegram', 'url' => 'https://t.me/chatwoot' },
       { 'type' => 'instagram', 'url' => 'https://instagram.com/chatwoot' },
-      { 'type' => 'line', 'url' => 'https://line.me/chatwoot' },
       { 'type' => 'tiktok', 'url' => 'https://tiktok.com/@chatwoot' }
     ]
     account.save!
