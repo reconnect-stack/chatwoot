@@ -7,6 +7,7 @@ import {
   DELETE_TEAM,
 } from './types';
 import TeamsAPI from '../../../api/teams';
+import { createCacheRevalidateAction } from '../../utils/cacheRevalidate';
 
 export const actions = {
   create: async ({ commit }, teamInfo) => {
@@ -22,18 +23,11 @@ export const actions = {
       commit(SET_TEAM_UI_FLAG, { isCreating: false });
     }
   },
-  revalidate: async ({ commit }, { newKey }) => {
-    try {
-      const isExistingKeyValid = await TeamsAPI.validateCacheKey(newKey);
-      if (!isExistingKeyValid) {
-        const response = await TeamsAPI.refetchAndCommit(newKey);
-        commit(CLEAR_TEAMS);
-        commit(SET_TEAMS, response.data);
-      }
-    } catch (error) {
-      // Ignore error
-    }
-  },
+  revalidate: createCacheRevalidateAction({
+    api: TeamsAPI,
+    mutation: SET_TEAMS,
+    clearMutation: CLEAR_TEAMS,
+  }),
   get: async ({ commit }) => {
     commit(SET_TEAM_UI_FLAG, { isFetching: true });
     try {

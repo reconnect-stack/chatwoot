@@ -7,6 +7,7 @@ import FBChannel from '../../api/channel/fbChannel';
 import TwilioChannel from '../../api/channel/twilioChannel';
 import WhatsappChannel from '../../api/channel/whatsappChannel';
 import { throwErrorMessage } from '../utils/api';
+import { createCacheRevalidateAction } from '../utils/cacheRevalidate';
 import AnalyticsHelper from '../../helper/AnalyticsHelper';
 import camelcaseKeys from 'camelcase-keys';
 import { ACCOUNT_EVENTS } from '../../helper/AnalyticsHelper/events';
@@ -189,17 +190,11 @@ const sendAnalyticsEvent = channelType => {
 };
 
 export const actions = {
-  revalidate: async ({ commit }, { newKey }) => {
-    try {
-      const isExistingKeyValid = await InboxesAPI.validateCacheKey(newKey);
-      if (!isExistingKeyValid) {
-        const response = await InboxesAPI.refetchAndCommit(newKey);
-        commit(types.default.SET_INBOXES, response.data.payload);
-      }
-    } catch (error) {
-      // Ignore error
-    }
-  },
+  revalidate: createCacheRevalidateAction({
+    api: InboxesAPI,
+    mutation: types.default.SET_INBOXES,
+    getData: response => response.data.payload,
+  }),
   get: async ({ commit }) => {
     commit(types.default.SET_INBOXES_UI_FLAG, { isFetching: true });
     try {

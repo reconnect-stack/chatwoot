@@ -1,4 +1,5 @@
 import { throwErrorMessage } from 'dashboard/store/utils/api';
+import { createCacheRevalidateAction } from 'dashboard/store/utils/cacheRevalidate';
 import * as MutationHelpers from 'shared/helpers/vuex/mutationHelpers';
 import * as types from '../mutation-types';
 import CannedResponseAPI from '../../api/cannedResponse';
@@ -47,21 +48,10 @@ const actions = {
     }
   },
 
-  revalidateCannedResponses: async function revalidateCannedResponses(
-    { commit },
-    { newKey }
-  ) {
-    try {
-      const isExistingKeyValid =
-        await CannedResponseAPI.validateCacheKey(newKey);
-      if (!isExistingKeyValid) {
-        const response = await CannedResponseAPI.refetchAndCommit(newKey);
-        commit(types.default.SET_CANNED, response.data);
-      }
-    } catch (error) {
-      // Ignore error
-    }
-  },
+  revalidateCannedResponses: createCacheRevalidateAction({
+    api: CannedResponseAPI,
+    mutation: types.default.SET_CANNED,
+  }),
 
   createCannedResponse: async function createCannedResponse(
     { commit },

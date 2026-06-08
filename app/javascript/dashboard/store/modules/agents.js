@@ -1,6 +1,7 @@
 import * as MutationHelpers from 'shared/helpers/vuex/mutationHelpers';
 import * as types from '../mutation-types';
 import AgentAPI from '../../api/agents';
+import { createCacheRevalidateAction } from '../utils/cacheRevalidate';
 
 export const state = {
   records: [],
@@ -51,17 +52,10 @@ export const actions = {
       commit(types.default.SET_AGENT_FETCHING_STATUS, false);
     }
   },
-  revalidate: async ({ commit }, { newKey }) => {
-    try {
-      const isExistingKeyValid = await AgentAPI.validateCacheKey(newKey);
-      if (!isExistingKeyValid) {
-        const response = await AgentAPI.refetchAndCommit(newKey);
-        commit(types.default.SET_AGENTS, response.data);
-      }
-    } catch (error) {
-      // Ignore error
-    }
-  },
+  revalidate: createCacheRevalidateAction({
+    api: AgentAPI,
+    mutation: types.default.SET_AGENTS,
+  }),
   create: async ({ commit }, agentInfo) => {
     commit(types.default.SET_AGENT_CREATING_STATUS, true);
     try {

@@ -3,6 +3,7 @@ import types from '../mutation-types';
 import LabelsAPI from '../../api/labels';
 import AnalyticsHelper from '../../helper/AnalyticsHelper';
 import { LABEL_EVENTS } from '../../helper/AnalyticsHelper/events';
+import { createCacheRevalidateAction } from '../utils/cacheRevalidate';
 
 export const state = {
   records: [],
@@ -32,17 +33,11 @@ export const getters = {
 };
 
 export const actions = {
-  revalidate: async function revalidate({ commit }, { newKey }) {
-    try {
-      const isExistingKeyValid = await LabelsAPI.validateCacheKey(newKey);
-      if (!isExistingKeyValid) {
-        const response = await LabelsAPI.refetchAndCommit(newKey);
-        commit(types.SET_LABELS, response.data.payload);
-      }
-    } catch (error) {
-      // Ignore error
-    }
-  },
+  revalidate: createCacheRevalidateAction({
+    api: LabelsAPI,
+    mutation: types.SET_LABELS,
+    getData: response => response.data.payload,
+  }),
 
   get: async function getLabels({ commit }) {
     commit(types.SET_LABEL_UI_FLAG, { isFetching: true });
