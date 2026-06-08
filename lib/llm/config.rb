@@ -2,11 +2,10 @@ require 'ruby_llm'
 
 module Llm::Config
   DEFAULT_MODEL = 'gpt-4.1-mini'.freeze
-  DEFAULT_UTILITY_MODEL = 'gpt-4.1-nano'.freeze
+  DEFAULT_LIGHTWEIGHT_MODEL = 'gpt-4.1-nano'.freeze
   DEFAULT_PROVIDER = 'openai'.freeze
   AZURE_PROVIDER = 'azure'.freeze
   OPENAI_CHAT_PARAMS_PROVIDERS = %w[azure openai openrouter].freeze
-
   class << self
     def initialized? = @initialized ||= false
 
@@ -30,7 +29,7 @@ module Llm::Config
 
     def default_provider = provider_config_value.presence || DEFAULT_PROVIDER
 
-    def captain_utility_model = default_openai_endpoint? ? DEFAULT_UTILITY_MODEL : configured_model.presence || DEFAULT_UTILITY_MODEL
+    def captain_lightweight_model = default_openai_endpoint? ? DEFAULT_LIGHTWEIGHT_MODEL : configured_model.presence || DEFAULT_LIGHTWEIGHT_MODEL
 
     def api_base_for(provider: default_provider, endpoint: api_endpoint)
       return if endpoint.blank?
@@ -122,7 +121,7 @@ module Llm::Config
       return if provider_configuration_requirements(provider).include?(:"#{provider}_api_base")
 
       config = RubyLLM::Configuration.new
-      provider_configuration_requirements(provider).each { |requirement| config.public_send("#{requirement}=", 'dummy') }
+      provider_configuration_requirements(provider).each { |requirement| config.public_send("#{requirement}=", 'placeholder') }
 
       RubyLLM::Provider.providers[provider.to_sym].new(config).api_base
     rescue StandardError

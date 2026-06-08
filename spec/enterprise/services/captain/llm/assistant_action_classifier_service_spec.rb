@@ -66,11 +66,11 @@ RSpec.describe Captain::Llm::AssistantActionClassifierService do
       )
     end
 
-    it 'uses the OpenAI utility model by default' do
+    it 'uses the configured Captain model for OpenAI with the default endpoint' do
       InstallationConfig.find_or_initialize_by(name: 'CAPTAIN_OPEN_AI_MODEL').update!(value: 'gpt-4.1')
 
       expect(RubyLLM).to receive(:chat).with(
-        model: 'gpt-4.1-nano',
+        model: 'gpt-4.1',
         provider: Llm::Config::DEFAULT_PROVIDER,
         assume_model_exists: true
       ).and_return(mock_chat)
@@ -78,7 +78,7 @@ RSpec.describe Captain::Llm::AssistantActionClassifierService do
 
       result = service.classify(message_history: message_history, assistant_response: 'Would you like to talk to support?')
 
-      expect(result).to include('model' => 'gpt-4.1-nano')
+      expect(result).to include('model' => 'gpt-4.1')
     end
 
     it 'uses the configured Captain model for named non-OpenAI providers' do

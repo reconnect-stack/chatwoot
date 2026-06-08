@@ -164,12 +164,12 @@ RSpec.describe Captain::ConversationCompletionService do
         )
       end
 
-      it 'uses the OpenAI utility model by default' do
+      it 'uses the configured Captain model for OpenAI with the default endpoint' do
         set_installation_config('CAPTAIN_LLM_PROVIDER', 'openai')
         set_installation_config('CAPTAIN_OPEN_AI_MODEL', 'gpt-4.1')
 
         expect(mock_context).to receive(:chat).with(
-          model: 'gpt-4.1-nano',
+          model: 'gpt-4.1',
           provider: 'openai',
           assume_model_exists: true
         ).and_return(mock_chat)

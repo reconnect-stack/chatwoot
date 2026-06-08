@@ -7,7 +7,6 @@ class Captain::Llm::AssistantActionClassifierService < Llm::BaseAiService
     super()
     @assistant = assistant
     @conversation = conversation
-    @model = Llm::Config.captain_utility_model
     @temperature = 0.0
   end
 

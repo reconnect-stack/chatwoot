@@ -16,7 +16,7 @@ class Captain::ConversationCompletionService < Captain::BaseTaskService
     return default_incomplete_response('No messages found') if content.blank?
 
     response = make_api_call(
-      model: Llm::Config.captain_utility_model,
+      model: InstallationConfig.find_by(name: 'CAPTAIN_OPEN_AI_MODEL')&.value.presence || GPT_MODEL,
       messages: [
         { role: 'system', content: prompt_from_file('conversation_completion') },
         { role: 'user', content: content }
@@ -60,6 +60,10 @@ class Captain::ConversationCompletionService < Captain::BaseTaskService
   # so it should always use the installation key.
   def llm_credential
     @llm_credential ||= system_llm_credential
+  end
+
+  def counts_toward_usage?
+    false
   end
 
   def event_name

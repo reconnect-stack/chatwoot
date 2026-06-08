@@ -9,7 +9,7 @@ RSpec.describe Captain::Llm::TranslateQueryService do
   end
 
   describe '#translate' do
-    it 'uses the OpenAI utility model by default' do
+    it 'uses the OpenAI lightweight model by default' do
       set_installation_config('CAPTAIN_LLM_PROVIDER', 'openai')
       set_installation_config('CAPTAIN_OPEN_AI_MODEL', 'gpt-4.1')
 

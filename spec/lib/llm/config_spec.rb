@@ -98,20 +98,20 @@ RSpec.describe Llm::Config do
     end
   end
 
-  describe '.captain_utility_model' do
+  describe '.captain_lightweight_model' do
     it 'uses gpt-4.1-nano for OpenAI with the default endpoint' do
       set_installation_config('CAPTAIN_LLM_PROVIDER', 'openai')
       set_installation_config('CAPTAIN_OPEN_AI_ENDPOINT', '')
       set_installation_config('CAPTAIN_OPEN_AI_MODEL', 'gpt-4.1')
 
-      expect(described_class.captain_utility_model).to eq('gpt-4.1-nano')
+      expect(described_class.captain_lightweight_model).to eq('gpt-4.1-nano')
     end
 
     it 'uses the configured Captain model for named non-OpenAI providers' do
       set_installation_config('CAPTAIN_LLM_PROVIDER', 'openrouter')
       set_installation_config('CAPTAIN_OPEN_AI_MODEL', 'openai/gpt-4o-mini')
 
-      expect(described_class.captain_utility_model).to eq('openai/gpt-4o-mini')
+      expect(described_class.captain_lightweight_model).to eq('openai/gpt-4o-mini')
     end
   end
 
