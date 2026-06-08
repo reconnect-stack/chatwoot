@@ -94,7 +94,7 @@
                 </p>
               <% elsif @config == 'captain' && key == 'CAPTAIN_EMBEDDING_API_KEY' %>
                 <p class="pt-2 text-xs italic text-slate-400">
-                  OpenAI key used for FAQs, knowledge search, PDF processing, and audio transcription. Required unless Provider is OpenAI with API Base blank/default, where Chatwoot reuses the Captain Model API key.
+                  OpenAI key used for embeddings, knowledge search, PDF processing, PDF FAQ generation, and audio transcription. Required unless Provider is OpenAI with API Base blank/default.
                 </p>
               <% elsif @config == 'captain' && key == 'CAPTAIN_OPEN_AI_ENDPOINT' %>
                 <p id="captain-api-base-hint" class="pt-2 text-xs italic text-slate-400">
@@ -130,16 +130,14 @@
             </p>
 
             <p>
-              Only RubyLLM providers shown in the dropdown are supported. API Base is prefilled when RubyLLM exposes a default; change it only if the selected provider requires a different endpoint.
+              Only RubyLLM providers shown in the dropdown are supported. API Base is prefilled when RubyLLM exposes a default; change it only if you know what you are doing.
             </p>
 
             <p>
-              When Provider is OpenAI and you are using OpenAI directly, leave API Base empty. The default OpenAI endpoint will be used.
+              Webpage FAQ generation uses the selected Captain provider. Embeddings, knowledge search, PDFs, PDF FAQ generation, and audio transcription use OpenAI.
             </p>
 
-            <p>
-              FAQs, knowledge search, PDF processing, and audio transcription always use OpenAI. Add an OpenAI key in Embeddings and documents unless Provider is OpenAI with API Base blank/default.
-            </p>
+
           </div>
         </aside>
       <% end %>
