@@ -246,8 +246,8 @@ es:
         call_permission_request_body: 'We would like to call you regarding your conversation.'
         unsupported_message: 'This message is unavailable.'
       voice_call:
-        twilio: 'Voice Call'
-        whatsapp: 'WhatsApp Call'
+        twilio: 'Llamada de voz'
+        whatsapp: 'Llamada de WhatsApp'
       delivery_status:
         error_code: 'Código de error: %{error_code}'
     activity:
