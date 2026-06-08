@@ -14,7 +14,7 @@ import {
 import { VOICE_CALL_PROVIDERS } from 'dashboard/helper/inbox';
 import { VOICE_CALL_DIRECTION } from 'dashboard/components-next/message/constants';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
-import { cacheableModels } from './CacheHelper/cacheableModels';
+import { dispatchCacheRevalidations } from './CacheHelper/dispatchCacheRevalidations';
 
 const { isImpersonating } = useImpersonation();
 const UNREAD_COUNTS_REFETCH_THROTTLE_MS = 5000;
@@ -270,12 +270,7 @@ class ActionCableConnector extends BaseActionCableConnector {
   };
 
   onCacheInvalidate = data => {
-    const keys = data.cache_keys || {};
-    cacheableModels.forEach(model => {
-      const newKey = keys[model.name];
-      if (newKey === undefined) return;
-      this.app.$store.dispatch(model.dispatchPath, { newKey });
-    });
+    dispatchCacheRevalidations(this.app.$store, data.cache_keys);
   };
 
   onVoiceCallIncoming = data => {
