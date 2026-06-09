@@ -9,7 +9,7 @@ class Whatsapp::WebhookTeardownService
     api_client = Whatsapp::FacebookApiClient.new(provider_config['api_key'])
 
     clear_phone_number_override(api_client)
-    teardown_waba_app(api_client)
+    unsubscribe_app_if_last_inbox(api_client)
   rescue StandardError => e
     # before_destroy must never block a channel delete — log and move on.
     Rails.logger.error "[WHATSAPP] Webhook teardown failed for channel #{@channel&.id}: #{e.message}"
@@ -38,32 +38,16 @@ class Whatsapp::WebhookTeardownService
     Rails.logger.error "[WHATSAPP] Phone-level webhook clear failed for channel #{@channel.id}: #{e.message}"
   end
 
-  # Reconcile the shared WABA app subscription once the phone override is gone:
-  # legacy sibling → leave it; only phone-level siblings → drop the legacy override, keep subscribed; no siblings → unsubscribe the app.
-  def teardown_waba_app(api_client)
+  # The app subscription is shared by every inbox on the WABA, so only unsubscribe when this is the last one.
+  def unsubscribe_app_if_last_inbox(api_client)
     waba_id = provider_config['business_account_id']
     return if waba_id.blank?
-    return if waba_dependent_sibling_exists?(waba_id)
+    return if waba_sibling_exists?(waba_id)
 
-    if waba_sibling_exists?(waba_id)
-      api_client.clear_waba_callback_override(waba_id)
-      Rails.logger.info "[WHATSAPP] Legacy WABA webhook override cleared for channel #{@channel.id}"
-    else
-      api_client.unsubscribe_app_from_waba(waba_id)
-      Rails.logger.info "[WHATSAPP] WABA app subscription removed for channel #{@channel.id}"
-    end
+    api_client.unsubscribe_app_from_waba(waba_id)
+    Rails.logger.info "[WHATSAPP] WABA app subscription removed for channel #{@channel.id}"
   rescue StandardError => e
-    Rails.logger.error "[WHATSAPP] WABA app teardown failed for channel #{@channel.id}: #{e.message}"
-  end
-
-  def waba_dependent_sibling_exists?(waba_id)
-    Channel::Whatsapp
-      .where.not(id: @channel.id)
-      .exists?([
-                 "provider_config ->> 'business_account_id' = ? AND " \
-                 "COALESCE(provider_config ->> 'webhook_override_level', '') <> 'phone_number'",
-                 waba_id
-               ])
+    Rails.logger.error "[WHATSAPP] WABA app unsubscribe failed for channel #{@channel.id}: #{e.message}"
   end
 
   def waba_sibling_exists?(waba_id)

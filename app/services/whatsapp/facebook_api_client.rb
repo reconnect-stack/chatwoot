@@ -110,11 +110,6 @@ class Whatsapp::FacebookApiClient
     handle_response(response, 'Phone number webhook callback clear failed')
   end
 
-  # Removing a WABA-level alternate callback is just a normal subscribe — it drops the override while keeping the app subscribed for siblings.
-  def clear_waba_callback_override(waba_id)
-    subscribe_app_to_waba(waba_id)
-  end
-
   # Fully removes this app's WABA subscription (last inbox deleted) so Meta stops delivering webhooks.
   def unsubscribe_app_from_waba(waba_id)
     response = HTTParty.delete(

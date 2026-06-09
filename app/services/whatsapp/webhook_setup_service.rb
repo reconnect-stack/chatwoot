@@ -62,18 +62,9 @@ class Whatsapp::WebhookSetupService
     phone_number_id = @channel.provider_config['phone_number_id']
 
     @api_client.subscribe_phone_number_webhook(@waba_id, phone_number_id, callback_url, verify_token, subscribed_fields: subscribed_fields)
-    mark_phone_level_override_persisted
   rescue StandardError => e
     Rails.logger.error("[WHATSAPP] Webhook setup failed: #{e.message}")
     raise "Webhook setup failed: #{e.message}"
-  end
-
-  # Marks the channel as phone-level so teardown's sibling guard can tell it from legacy WABA rows; best-effort, self-heals on reauth.
-  def mark_phone_level_override_persisted
-    @channel.provider_config = @channel.provider_config.merge('webhook_override_level' => 'phone_number')
-    @channel.save!
-  rescue StandardError => e
-    Rails.logger.warn("[WHATSAPP] Failed to persist webhook override level marker: #{e.message}")
   end
 
   def build_callback_url
