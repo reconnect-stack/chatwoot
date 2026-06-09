@@ -7,6 +7,9 @@ class Whatsapp::FacebookApiClient
   # subscription to default fields if we POST /subscribed_apps without one, so
   # we resend this list on every (re)subscribe to keep the subscription stable.
   SUBSCRIBED_FIELDS = %w[messages smb_message_echoes].freeze
+  # Default fields for a callback override; includes `calls` so voice-calling
+  # webhooks are delivered. Voice toggles narrow this list when disabling.
+  WEBHOOK_DEFAULT_FIELDS = %w[messages smb_message_echoes calls].freeze
 
   def initialize(access_token = nil)
     @access_token = access_token
@@ -67,7 +70,7 @@ class Whatsapp::FacebookApiClient
     data['code_verification_status'] == 'VERIFIED'
   end
 
-  def subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token)
+  def subscribe_phone_number_webhook(waba_id, phone_number_id, callback_url, verify_token, subscribed_fields: WEBHOOK_DEFAULT_FIELDS)
     # Step 1: Subscribe app to WABA (required before any webhook override)
     # Meta requires the app to be subscribed before using override_callback_uri
     # See: https://github.com/chatwoot/chatwoot/issues/13097
@@ -76,7 +79,7 @@ class Whatsapp::FacebookApiClient
     # Step 2: Override callback URL at phone number level
     # Phone number level overrides take precedence over WABA level overrides,
     # allowing multiple phone numbers on the same WABA to have different callback URLs
-    override_phone_number_callback(phone_number_id, callback_url, verify_token)
+    override_phone_number_callback(phone_number_id, callback_url, verify_token, subscribed_fields: subscribed_fields)
   end
 
   def subscribe_app_to_waba(waba_id)
@@ -89,14 +92,15 @@ class Whatsapp::FacebookApiClient
     handle_response(response, 'App subscription to WABA failed')
   end
 
-  def override_phone_number_callback(phone_number_id, callback_url, verify_token)
+  def override_phone_number_callback(phone_number_id, callback_url, verify_token, subscribed_fields: WEBHOOK_DEFAULT_FIELDS)
     response = HTTParty.post(
       "#{BASE_URI}/#{@api_version}/#{phone_number_id}",
       headers: request_headers,
       body: {
         webhook_configuration: {
           override_callback_uri: callback_url,
-          verify_token: verify_token
+          verify_token: verify_token,
+          subscribed_fields: subscribed_fields
         }
       }.to_json
     )
