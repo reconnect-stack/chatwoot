@@ -129,6 +129,56 @@ RSpec.describe Captain::Conversation::ResponseBuilderJob, type: :job do
           )
         end
 
+        it 'hands off instead of sending the unsafe draft when repair generation fails' do
+          allow(mock_llm_chat_service).to receive(:generate_response)
+            .and_return({ 'response' => 'Let me check and get back to you.' })
+          allow(mock_llm_chat_service).to receive(:generate_response)
+            .with(
+              message_history: [
+                { content: 'Hello', role: 'user' },
+                { role: 'assistant', content: 'Let me check and get back to you.' }
+              ],
+              additional_message: Captain::Conversation::V1FalsePromiseHandler::FUTURE_PROMISE_REPAIR_INSTRUCTION
+            ).and_raise(StandardError, 'repair timeout')
+          allow(mock_false_promise_service).to receive(:detect).and_return({
+                                                                             'decision' => 'future_work_promise',
+                                                                             'reason' => 'future_check_or_investigation',
+                                                                             'model' => 'gpt-4.1'
+                                                                           })
+
+          described_class.perform_now(conversation, assistant)
+
+          expect(conversation.reload.status).to eq('open')
+          expect(conversation.messages.outgoing.last.content).to eq(I18n.t('conversations.captain.handoff'))
+          expect(conversation.messages.outgoing.pluck(:content)).not_to include('Let me check and get back to you.')
+          expect(account.reload.usage_limits[:captain][:responses][:consumed]).to eq(0)
+        end
+
+        it 'hands off instead of sending an unverified repair when repair verification fails' do
+          allow(mock_llm_chat_service).to receive(:generate_response)
+            .and_return(
+              { 'response' => 'Let me check and get back to you.' },
+              { 'response' => 'Could you share the exact error message you see?' }
+            )
+          allow(mock_false_promise_service).to receive(:detect)
+            .and_return({
+                          'decision' => 'future_work_promise',
+                          'reason' => 'future_check_or_investigation',
+                          'model' => 'gpt-4.1'
+                        }, nil)
+          allow(mock_false_promise_service).to receive(:detect).with(
+            message_history: [{ content: 'Hello', role: 'user' }],
+            assistant_response: 'Could you share the exact error message you see?'
+          ).and_raise(StandardError, 'verification timeout')
+
+          described_class.perform_now(conversation, assistant)
+
+          expect(conversation.reload.status).to eq('open')
+          expect(conversation.messages.outgoing.last.content).to eq(I18n.t('conversations.captain.handoff'))
+          expect(conversation.messages.outgoing.pluck(:content)).not_to include('Could you share the exact error message you see?')
+          expect(account.reload.usage_limits[:captain][:responses][:consumed]).to eq(0)
+        end
+
         it 'hands off when the regenerated response still contains a future-work promise' do
           allow(mock_llm_chat_service).to receive(:generate_response)
             .and_return(
