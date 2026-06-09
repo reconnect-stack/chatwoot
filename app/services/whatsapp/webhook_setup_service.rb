@@ -73,13 +73,7 @@ class Whatsapp::WebhookSetupService
     raise "Webhook setup failed: #{e.message}"
   end
 
-  # Records that this channel is now receiving webhooks via a phone-number-level
-  # override. Teardown uses this marker as ground truth: a channel without it is
-  # treated as still depending on the WABA-level fallback, so the teardown
-  # sibling guard can tell legacy rows from new rows even though both persist
-  # phone_number_id in provider_config. Self-heals on every reauth. Marker
-  # persistence is best-effort — a DB hiccup here should not undo the Meta-side
-  # configuration we just succeeded in setting.
+  # Marks the channel as phone-level so teardown's sibling guard can tell it from legacy WABA rows; best-effort, self-heals on reauth.
   def mark_phone_level_override_persisted
     @channel.provider_config = @channel.provider_config.merge('webhook_override_level' => 'phone_number')
     @channel.save!

@@ -27,9 +27,7 @@ class Whatsapp::ReauthorizationService
 
   def update_channel_config(channel, access_token, phone_info)
     current_config = channel.provider_config || {}
-    # Reauthorization requests may omit phone_number_id (legacy clients).
-    # Fall back to the value we just fetched from Meta so downstream webhook
-    # setup always has a real phone number ID to target.
+    # Legacy clients may omit phone_number_id; fall back to the value just fetched from Meta.
     resolved_phone_number_id = @phone_number_id.presence || phone_info[:phone_number_id]
 
     channel.provider_config = current_config.merge(

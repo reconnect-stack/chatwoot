@@ -162,13 +162,12 @@ describe Whatsapp::FacebookApiClient do
 
     context 'when successful' do
       before do
-        # Step 1: Subscribe app to WABA with the explicit field list. Pinning
-        # the body here guards against future regressions that drop
-        # smb_message_echoes and silently break SMB coexistence.
+        # Step 1: Subscribe app to WABA with the explicit field list (incl. `calls`).
+        # Pinning the body guards against regressions that drop a field and break delivery.
         stub_request(:post, "https://graph.facebook.com/#{api_version}/#{waba_id}/subscribed_apps")
           .with(
             headers: { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' },
-            body: { subscribed_fields: %w[messages smb_message_echoes] }.to_json
+            body: { subscribed_fields: %w[messages smb_message_echoes calls] }.to_json
           )
           .to_return(
             status: 200,
@@ -180,8 +179,7 @@ describe Whatsapp::FacebookApiClient do
         stub_request(:post, "https://graph.facebook.com/#{api_version}/#{phone_number_id}")
           .with(
             headers: { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' },
-            body: { webhook_configuration: { override_callback_uri: callback_url, verify_token: verify_token,
-                                             subscribed_fields: %w[messages smb_message_echoes calls] } }.to_json
+            body: { webhook_configuration: { override_callback_uri: callback_url, verify_token: verify_token } }.to_json
           )
           .to_return(
             status: 200,
@@ -229,8 +227,7 @@ describe Whatsapp::FacebookApiClient do
         stub_request(:post, "https://graph.facebook.com/#{api_version}/#{phone_number_id}")
           .with(
             headers: { 'Authorization' => "Bearer #{access_token}", 'Content-Type' => 'application/json' },
-            body: { webhook_configuration: { override_callback_uri: callback_url, verify_token: verify_token,
-                                             subscribed_fields: %w[messages smb_message_echoes calls] } }.to_json
+            body: { webhook_configuration: { override_callback_uri: callback_url, verify_token: verify_token } }.to_json
           )
           .to_return(status: 400, body: { error: 'Phone number webhook callback override failed' }.to_json)
       end

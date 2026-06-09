@@ -38,15 +38,8 @@ class Whatsapp::WebhookTeardownService
     Rails.logger.error "[WHATSAPP] Phone-level webhook clear failed for channel #{@channel.id}: #{e.message}"
   end
 
-  # The WABA-level override_callback_uri is shared across every phone number on
-  # the WABA, so we must not clear it while any sibling channel still depends
-  # on it. We use a persisted marker written by WebhookSetupService as ground
-  # truth: a channel that has webhook_override_level == 'phone_number' in its
-  # provider_config is using a phone-level override (which takes precedence
-  # over the WABA-level value) and does not need the WABA fallback. Siblings
-  # without that marker are treated as legacy / still dependent on the WABA
-  # callback and block the clear. phone_number_id alone cannot distinguish
-  # these cases because legacy embedded-signup channels also persist it.
+  # Clear the shared WABA-level override only when no sibling still relies on it:
+  # phone-level siblings (webhook_override_level=phone_number) don't block; legacy rows do.
   def clear_legacy_waba_override(api_client)
     waba_id = provider_config['business_account_id']
     return if waba_id.blank?
