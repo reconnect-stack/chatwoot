@@ -138,7 +138,7 @@ const staticElements = computed(() =>
         <img
           :src="referralMediaUrl"
           :alt="$t('CONTACT_PANEL.AD_REFERRAL.MEDIA_PREVIEW')"
-          class="object-cover w-full max-h-40"
+          class="object-contain w-full h-40"
         />
       </a>
       <div class="flex flex-col gap-2">
