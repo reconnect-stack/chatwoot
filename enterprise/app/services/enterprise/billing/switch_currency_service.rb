@@ -6,6 +6,9 @@ class Enterprise::Billing::SwitchCurrencyService
   # Tags a cancelled sub so the deleted-webhook skips re-subscribing the default plan.
   SWITCH_METADATA_KEY = 'chatwoot_currency_switch'.freeze
 
+  # Delinquent paid statuses that must be settled before switching currency.
+  DELINQUENT_STATUSES = %w[past_due unpaid].freeze
+
   pattr_initialize [:account!, :currency!]
 
   def perform
@@ -131,10 +134,12 @@ class Enterprise::Billing::SwitchCurrencyService
     )
   end
 
-  # Block the switch while a paid sub is past_due, else the account currency/location changes but the unpaid sub stays in the old currency.
+  # Block the switch while a paid sub is delinquent, else the account currency/location changes but the unpaid sub stays in the old currency.
   def reject_past_due_paid_subscription!
-    past_due = all_subscriptions.any? { |subscription| subscription.status == 'past_due' && !default_price?(subscription) }
-    raise Error, I18n.t('errors.billing.past_due_subscription') if past_due
+    delinquent = all_subscriptions.any? do |subscription|
+      DELINQUENT_STATUSES.include?(subscription.status) && !default_price?(subscription)
+    end
+    raise Error, I18n.t('errors.billing.past_due_subscription') if delinquent
   end
 
   def all_subscriptions
