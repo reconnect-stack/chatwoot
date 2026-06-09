@@ -130,10 +130,10 @@ class Enterprise::Billing::SwitchCurrencyService
     )
   end
 
-  # Includes trialing — a prior switch leaves the new sub trialing until its paid-through date.
+  # Includes trialing (a prior switch leaves the new sub trialing); excludes past_due so a delinquent account can't switch to restore access without paying.
   def live_subscriptions
     Stripe::Subscription.list(customer: stripe_customer_id, status: 'all', limit: 100).data
-                        .select { |subscription| %w[active trialing past_due].include?(subscription.status) }
+                        .select { |subscription| %w[active trialing].include?(subscription.status) }
   end
 
   def validate_payment_method!
