@@ -69,13 +69,27 @@ const referralFields = computed(() =>
     },
   ].filter(field => !!field.value)
 );
-const referralMediaUrl = computed(
-  () =>
+const safeReferralUrl = url => {
+  if (!url) return '';
+
+  try {
+    const parsedUrl = new URL(url);
+    return ['http:', 'https:'].includes(parsedUrl.protocol) ? url : '';
+  } catch {
+    return '';
+  }
+};
+const referralMediaUrl = computed(() =>
+  safeReferralUrl(
     props.referralAttributes.thumbnail_url ||
-    props.referralAttributes.image_url ||
-    props.referralAttributes.video_url
+      props.referralAttributes.image_url ||
+      props.referralAttributes.video_url ||
+      props.referralAttributes.media_url
+  )
 );
-const referralSourceUrl = computed(() => props.referralAttributes.source_url);
+const referralSourceUrl = computed(() =>
+  safeReferralUrl(props.referralAttributes.source_url)
+);
 
 const staticElements = computed(() =>
   [
