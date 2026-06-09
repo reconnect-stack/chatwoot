@@ -9,6 +9,9 @@ class Enterprise::Billing::SwitchCurrencyService
   # Stripe statuses that are done and can't reactivate — ignored when checking switch eligibility.
   TERMINAL_STATUSES = %w[canceled incomplete_expired].freeze
 
+  # Healthy statuses that may switch currency; trialing covers a sub left trialing by a prior paid switch.
+  SWITCHABLE_STATUSES = %w[active trialing].freeze
+
   pattr_initialize [:account!, :currency!]
 
   # Only the simple happy path is allowed: exactly one active subscription (paid or default plan),
@@ -43,10 +46,10 @@ class Enterprise::Billing::SwitchCurrencyService
     raise Error, I18n.t('errors.billing.stripe_customer_not_configured') if stripe_customer_id.blank?
   end
 
-  # Exactly one live subscription, active (paid or default plan). Anything else (pending or extra) is rejected.
+  # Exactly one live subscription in a switchable state (paid or default plan). Anything else (pending or extra) is rejected.
   def eligible_active_subscription!
     subscription = live_subscriptions.first
-    eligible = live_subscriptions.one? && subscription.status == 'active'
+    eligible = live_subscriptions.one? && SWITCHABLE_STATUSES.include?(subscription.status)
     raise Error, I18n.t('errors.billing.switch_requires_active_subscription') unless eligible
 
     subscription
