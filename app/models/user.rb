@@ -116,7 +116,7 @@ class User < ApplicationRecord
   has_many :macros, foreign_key: 'created_by_id', inverse_of: :created_by
   # rubocop:enable Rails/HasManyOrHasOneDependent
 
-  AGENT_CACHE_RELEVANT_COLUMNS = %w[name email display_name confirmed_at].freeze
+  AGENT_CACHE_RELEVANT_COLUMNS = %w[name email display_name confirmed_at custom_attributes].freeze
 
   before_validation :set_password_and_uid, on: :create
   after_destroy :remove_macros
