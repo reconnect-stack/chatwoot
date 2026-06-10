@@ -101,12 +101,12 @@ module PortalHelper
   def render_emoji_or_icon(value, color = nil)
     return '' if value.blank?
 
-    # Emoji characters are non-ascii; bare icon names match this safe charset.
+    # Emojis are non-ascii; bare icon names match this safe charset.
     return ERB::Util.html_escape(value) unless value.match?(/\A[a-z][a-z0-9-]*\z/)
 
     icon_class = value.start_with?('i-') ? value : "i-ri-#{value}"
-    style = color.to_s.match?(/\A#[0-9a-fA-F]{3,8}\z/) ? "color: #{color};" : nil
-    content_tag(:span, '', class: icon_class, style: style, 'aria-hidden': true)
+    style = "color: #{color};" if color.to_s.match?(/\A#\h{3,8}\z/)
+    tag.span(class: icon_class, style: style, 'aria-hidden': true)
   end
 
   def thumbnail_bg_color(username)
