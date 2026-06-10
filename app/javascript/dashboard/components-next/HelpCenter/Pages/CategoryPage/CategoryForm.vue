@@ -118,6 +118,10 @@ const onSelectIcon = ({ type, value, color }) => {
   isEmojiPickerOpen.value = false;
 };
 
+const onColorChange = color => {
+  state.iconColor = color;
+};
+
 const onRemoveIcon = () => {
   state.icon = '';
   state.iconColor = '';
@@ -235,6 +239,7 @@ defineExpose({ state, isSubmitDisabled });
                 :color="state.iconColor"
                 show-remove-button
                 @select="onSelectIcon"
+                @color-change="onColorChange"
                 @remove="onRemoveIcon"
               />
             </OnClickOutside>

@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Virtualizer } from 'virtua/vue';
 
@@ -44,7 +44,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['select', 'remove']);
+const emit = defineEmits(['select', 'remove', 'colorChange']);
 
 const { t } = useI18n();
 
@@ -108,6 +108,10 @@ const selectIcon = icon => {
     color: selectedColor.value,
   });
 };
+
+watch(selectedColor, color => {
+  if (isIconValue(props.value)) emit('colorChange', color);
+});
 
 // Emojis
 const emojiSearch = ref('');
