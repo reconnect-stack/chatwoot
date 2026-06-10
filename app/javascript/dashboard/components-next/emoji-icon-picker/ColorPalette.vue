@@ -1,6 +1,8 @@
 <script setup>
+import { useI18n } from 'vue-i18n';
 import { ICON_COLORS } from './constants';
 
+const { t } = useI18n();
 const selectedColor = defineModel({ type: String, default: '' });
 </script>
 
@@ -9,7 +11,7 @@ const selectedColor = defineModel({ type: String, default: '' });
     <button
       v-for="color in ICON_COLORS"
       :key="color.value"
-      v-tooltip.top="color.name"
+      v-tooltip.top="t(`EMOJI_ICON_PICKER.COLORS.${color.name}`)"
       type="button"
       class="flex items-center justify-center flex-shrink-0 transition-all rounded-full size-5 ring-offset-2 ring-offset-n-surface-2 hover:ring-2"
       :class="{ 'ring-2': selectedColor === color.value }"

@@ -18,6 +18,18 @@
     "STYLE": {
       "OUTLINE": "Outline icons",
       "FILLED": "Filled icons"
+    },
+    "COLORS": {
+      "SLATE": "Slate",
+      "RED": "Red",
+      "ORANGE": "Orange",
+      "AMBER": "Amber",
+      "GREEN": "Green",
+      "TEAL": "Teal",
+      "BLUE": "Blue",
+      "INDIGO": "Indigo",
+      "VIOLET": "Violet",
+      "PINK": "Pink"
     }
   }
 }
