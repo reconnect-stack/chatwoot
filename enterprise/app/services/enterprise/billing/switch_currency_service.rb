@@ -28,7 +28,14 @@ class Enterprise::Billing::SwitchCurrencyService
     validate_payment_method! unless default_price?(subscription)
     sync_stripe_customer_location
 
-    new_subscription = replace_subscription(subscription, change)
+    begin
+      new_subscription = replace_subscription(subscription, change)
+    rescue StandardError
+      # Replacement failed and reverted to the old currency — undo the customer location change too.
+      restore_customer_location
+      raise
+    end
+
     persist_currency(build_custom_attributes(new_subscription, plan))
     Enterprise::Billing::ReconcilePlanFeaturesService.new(account: account).perform
   end
@@ -137,10 +144,19 @@ class Enterprise::Billing::SwitchCurrencyService
   end
 
   def sync_stripe_customer_location
+    update_customer_location(target_currency)
+  end
+
+  # Revert the customer to its current (old) currency location; account.billing_currency is still the old one here.
+  def restore_customer_location
+    update_customer_location(account.billing_currency)
+  end
+
+  def update_customer_location(currency_code)
     Stripe::Customer.update(
       stripe_customer_id,
-      address: { country: Enterprise::Billing::Currencies.country_for(target_currency) },
-      preferred_locales: [Enterprise::Billing::Currencies.preferred_locale_for(target_currency)]
+      address: { country: Enterprise::Billing::Currencies.country_for(currency_code) },
+      preferred_locales: [Enterprise::Billing::Currencies.preferred_locale_for(currency_code)]
     )
   end
 
