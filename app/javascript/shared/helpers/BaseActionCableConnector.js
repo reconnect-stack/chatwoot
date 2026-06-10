@@ -14,9 +14,6 @@ class BaseActionCableConnector {
   ) {
     const websocketURL = websocketHost ? `${websocketHost}/cable` : undefined;
 
-    this.connected = new Promise(resolve => {
-      this.resolveConnected = resolve;
-    });
     this.consumer = createConsumer(websocketURL);
     this.subscription = this.consumer.subscriptions.create(
       {
@@ -28,10 +25,6 @@ class BaseActionCableConnector {
       {
         updatePresence() {
           this.perform('update_presence');
-        },
-        connected: () => {
-          this.resolveConnected();
-          this.onConnected();
         },
         received: this.onReceived,
         disconnected: () => {
@@ -80,9 +73,6 @@ class BaseActionCableConnector {
       this.checkConnection();
     }, RECONNECT_INTERVAL);
   };
-
-  // eslint-disable-next-line class-methods-use-this
-  onConnected = () => {};
 
   // eslint-disable-next-line class-methods-use-this
   onReconnect = () => {};

@@ -50,12 +50,11 @@ class CacheEnabledApiClient extends ApiClient {
       return this.getFromNetwork();
     }
 
-    // Trust the IDB cache. Freshness is maintained by:
-    //   - boot-time hydrateStoresFromCache (compares server keys once on boot)
-    //   - ActionCable ACCOUNT_CACHE_INVALIDATED broadcasts (live updates)
-    //   - ReconnectService.revalidateCaches (on WebSocket reconnect)
-    // Skipping the per-call /cache_keys preflight eliminates N GET requests per
-    // cold settings-page load.
+    // Trust the IDB cache. Freshness is maintained by the
+    // account.cache_invalidated event alone: RoomChannel pushes the cache-key
+    // map on every (re)subscribe — boot and reconnect included — and the
+    // server broadcasts it on every change. Skipping a per-call /cache_keys
+    // preflight eliminates N GET requests per cold settings-page load.
     const localData = await this.dataManager.get({
       modelName: this.cacheModelName,
     });
