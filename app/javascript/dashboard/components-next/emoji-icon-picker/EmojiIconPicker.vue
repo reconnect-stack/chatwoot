@@ -85,7 +85,9 @@ const iconStyle = ref(
 const filteredIcons = computed(() => {
   const term = iconSearch.value.trim().toLowerCase();
   if (!term) return CURATED_ICONS;
-  return CURATED_ICONS.filter(icon => icon.keywords.includes(term));
+  return CURATED_ICONS.filter(
+    icon => icon.name.includes(term) || icon.keywords.includes(term)
+  );
 });
 
 const toggleIconStyle = () => {
