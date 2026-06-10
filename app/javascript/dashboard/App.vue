@@ -19,7 +19,7 @@ import {
   verifyServiceWorkerExistence,
 } from './helper/pushHelper';
 import ReconnectService from 'dashboard/helper/ReconnectService';
-import hydrateStoresFromCache from 'dashboard/helper/CacheHelper/hydrateStoresFromCache';
+import paintStoresFromCache from 'dashboard/helper/CacheHelper/paintStoresFromCache';
 import { useUISettings } from 'dashboard/composables/useUISettings';
 
 export default {
@@ -110,16 +110,13 @@ export default {
         accountId: this.currentAccountId,
       });
       const { pubsub_token: pubsubToken } = this.currentUser || {};
-      const actionCable = vueActionCable.init(this.store, pubsubToken);
+      vueActionCable.init(this.store, pubsubToken);
 
-      // Seed Vuex from IndexedDB while ActionCable connects so warm boots paint
-      // cached config instantly. Once the cable subscription is confirmed, run
-      // one more reconciliation to catch invalidations broadcast between the
-      // first cache-key snapshot and the active subscription.
-      await hydrateStoresFromCache(this.$store, this.currentAccountId);
-      actionCable.connected.then(() => {
-        hydrateStoresFromCache(this.$store, this.currentAccountId);
-      });
+      // Paint cached config from IndexedDB instantly while the cable
+      // connects. Freshness needs no orchestration here: RoomChannel pushes
+      // the cache-key map on every (re)subscribe and on every server-side
+      // change, all through the same account.cache_invalidated event.
+      await paintStoresFromCache(this.$store, this.currentAccountId);
 
       const account = this.getAccount(this.currentAccountId);
       const { locale, latest_chatwoot_version: latestChatwootVersion } =

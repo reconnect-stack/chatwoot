@@ -5,7 +5,7 @@
 // with what the client looks up.
 //
 // `dispatchPath` is the full Vuex dispatch path for the revalidate action.
-// `setMutation` is the full commit path used by hydrateStoresFromCache to seed
+// `setMutation` is the full commit path used by paintStoresFromCache to seed
 // Vuex from IDB. `clearMutation` (optional) is committed BEFORE `setMutation`
 // for modules whose SET_* mutation merges-by-id instead of replacing — without
 // it, rows deleted server-side between sessions would survive as phantoms.
