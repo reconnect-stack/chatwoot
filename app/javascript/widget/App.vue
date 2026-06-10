@@ -16,7 +16,12 @@ import {
   ON_AGENT_MESSAGE_RECEIVED,
   ON_CAMPAIGN_MESSAGE_CLICK,
   ON_UNREAD_MESSAGE_CLICK,
+  ON_ARTICLE_VIEW_RESIZING,
 } from './constants/widgetBusEvents';
+
+// Keep in sync with the widget holder width/height transition in sdk.js. The
+// article view is masked for this long so the iframe can reflow off-screen.
+const ARTICLE_VIEW_RESIZE_DURATION = 200;
 import { useDarkMode } from 'widget/composables/useDarkMode';
 import { useRouter } from 'vue-router';
 import { useAvailability } from 'widget/composables/useAvailability';
@@ -44,6 +49,7 @@ export default {
     return {
       isMobile: false,
       campaignsSnoozedTill: undefined,
+      isArticleView: false,
     };
   },
   computed: {
@@ -87,6 +93,7 @@ export default {
       // Here we just collapse when leaving the article view, since the iframe is
       // torn down then and can no longer signal.
       if (this.isIFrame && previousRouteName === 'article-viewer') {
+        this.isArticleView = false;
         IFrameHelper.sendMessage({ event: 'collapseWidget' });
       }
     },
@@ -192,6 +199,23 @@ export default {
         name: 'article-viewer',
         query: { link, v: Date.now() },
       });
+    },
+    setArticleView(isArticle) {
+      // Only resize when the page type actually changes, so navigating between
+      // two articles (or two listing pages) doesn't trigger a needless mask.
+      if (!this.isIFrame || isArticle === this.isArticleView) return;
+      this.isArticleView = isArticle;
+
+      // Mask the iframe while the widget resizes so its text reflow happens
+      // off-screen, then reveal it once the size transition has settled.
+      emitter.emit(ON_ARTICLE_VIEW_RESIZING, true);
+      IFrameHelper.sendMessage({
+        event: isArticle ? 'expandWidget' : 'collapseWidget',
+      });
+      setTimeout(
+        () => emitter.emit(ON_ARTICLE_VIEW_RESIZING, false),
+        ARTICLE_VIEW_RESIZE_DURATION
+      );
     },
     registerUnreadEvents() {
       emitter.on(ON_AGENT_MESSAGE_RECEIVED, () => {
@@ -352,9 +376,7 @@ export default {
         } else if (message.event === 'open-article') {
           this.openArticle(message.slug);
         } else if (message.event === 'portalPageLoaded') {
-          IFrameHelper.sendMessage({
-            event: message.isArticle ? 'expandWidget' : 'collapseWidget',
-          });
+          this.setArticleView(message.isArticle);
         } else if (message.event === 'toggle-open') {
           this.$store.dispatch('appConfig/toggleWidgetOpen', message.isOpen);
 
