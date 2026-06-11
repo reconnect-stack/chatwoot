@@ -9,13 +9,13 @@ module Enterprise::Billing::Currencies
     'pt_BR' => 'brl'
   }.freeze
 
+  # Billing country override per currency; absent currencies (e.g. usd) keep Stripe's default.
   COUNTRY_BY_CURRENCY = {
-    'usd' => 'US',
     'brl' => 'BR'
   }.freeze
 
+  # Preferred Stripe/checkout locale per currency; absent currencies keep Stripe's default.
   PREFERRED_LOCALE_BY_CURRENCY = {
-    'usd' => 'en',
     'brl' => 'pt-BR'
   }.freeze
 

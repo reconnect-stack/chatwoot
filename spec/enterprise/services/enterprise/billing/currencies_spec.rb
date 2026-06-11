@@ -26,7 +26,11 @@ describe Enterprise::Billing::Currencies do
 
     it 'falls back to the usd default for unsupported input' do
       expect(described_class.to_supported('eur')).to eq('usd')
-      expect(described_class.country_for('eur')).to eq('US')
+    end
+
+    it 'does not set a country override for usd customers' do
+      expect(described_class.country_for('usd')).to be_nil
+      expect(described_class.preferred_locale_for('usd')).to be_nil
     end
   end
 end
