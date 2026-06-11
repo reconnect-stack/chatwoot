@@ -2,7 +2,7 @@ class Api::V1::Profile::SessionsController < Api::BaseController
   before_action :set_session, only: [:destroy]
 
   def index
-    @sessions = current_user.user_sessions.order(last_activity_at: :desc)
+    @sessions = current_user.user_sessions.where(client_id: active_token_client_ids).order(last_activity_at: :desc)
     @current_client_id = request.headers['client']
   end
 
@@ -27,5 +27,10 @@ class Api::V1::Profile::SessionsController < Api::BaseController
     tokens = current_user.tokens
     tokens.delete(client_id)
     current_user.update!(tokens: tokens)
+  end
+
+  def active_token_client_ids
+    now = Time.current.to_i
+    (current_user.tokens || {}).select { |_, v| v['expiry'].to_i > now }.keys
   end
 end
