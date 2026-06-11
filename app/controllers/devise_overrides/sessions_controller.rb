@@ -66,12 +66,22 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
   end
 
   def authenticate_resource_with_sso_token
+    # DTA evicts the earliest-expiring token after save when at max_number_of_devices.
+    # The short-lived impersonation token would always be that one, so pre-evict to make room.
+    make_room_for_impersonation_token if @impersonation
     @token = @resource.create_token(lifespan: @impersonation ? 2.days.to_i : nil)
     @resource.save!
 
     sign_in(:user, @resource, store: false, bypass: false)
     # invalidate the token after the user is signed in
     @resource.invalidate_sso_auth_token(params[:sso_auth_token])
+  end
+
+  def make_room_for_impersonation_token
+    return if @resource.tokens.size < DeviseTokenAuth.max_number_of_devices
+
+    oldest_client_id = @resource.tokens.min_by { |_, v| v['expiry'].to_i }&.first
+    @resource.tokens.delete(oldest_client_id) if oldest_client_id
   end
 
   def process_sso_auth_token

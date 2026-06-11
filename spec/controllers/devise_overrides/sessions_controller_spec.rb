@@ -215,5 +215,21 @@ RSpec.describe DeviseOverrides::SessionsController, type: :controller do
         post :create, params: { email: user.email, sso_auth_token: sso_token }
       end.to change(user.user_sessions, :count).by(1)
     end
+
+    it 'preserves the impersonation token when target user is at the device cap' do
+      allow(DeviseTokenAuth).to receive(:max_number_of_devices).and_return(5)
+      5.times do |i|
+        user.tokens["existing#{i}"] = { 'token' => 'x', 'expiry' => (Time.current + (30 + i).days).to_i }
+      end
+      user.save!
+      sso_token = user.generate_sso_auth_token(impersonation: true)
+
+      post :create, params: { email: user.email, sso_auth_token: sso_token }
+
+      expect(response).to have_http_status(:success)
+      new_client_id = response.headers['client']
+      expect(user.reload.tokens.keys).to include(new_client_id)
+      expect(user.tokens.size).to eq(5)
+    end
   end
 end
