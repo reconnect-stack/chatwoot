@@ -108,7 +108,7 @@ const statusText = computed(() => {
       articlesCount.value
     );
   }
-  if (isCompleted.value || articlesCount.value > 0) return articlesText.value;
+  if (articlesCount.value > 0) return articlesText.value;
   return generatingPhases.value[phaseIndex.value];
 });
 
