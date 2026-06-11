@@ -16,6 +16,7 @@ RSpec.describe 'Profile Sessions API', type: :request do
     it 'returns the current user sessions ordered by last_activity_at desc' do
       older = user.user_sessions.create!(client_id: current_client_id, browser_name: 'Chrome', last_activity_at: 2.days.ago)
       newer = user.user_sessions.create!(client_id: 'other-client', browser_name: 'Firefox', last_activity_at: 1.hour.ago)
+      user.update!(tokens: user.tokens.merge('other-client' => { 'token' => 'x', 'expiry' => 1.month.from_now.to_i }))
 
       get '/api/v1/profile/sessions', headers: auth_headers, as: :json
 
@@ -24,6 +25,19 @@ RSpec.describe 'Profile Sessions API', type: :request do
       expect(sessions.map { |s| s['id'] }).to eq([newer.id, older.id])
       expect(sessions.find { |s| s['id'] == older.id }['current']).to be true
       expect(sessions.find { |s| s['id'] == newer.id }['current']).to be false
+    end
+
+    it 'excludes sessions whose token has expired' do
+      live = user.user_sessions.create!(client_id: current_client_id, last_activity_at: 1.hour.ago)
+      expired = user.user_sessions.create!(client_id: 'expired-client', last_activity_at: 1.day.ago)
+      user.update!(tokens: user.tokens.merge('expired-client' => { 'token' => 'x', 'expiry' => 1.day.ago.to_i }))
+
+      get '/api/v1/profile/sessions', headers: auth_headers, as: :json
+
+      expect(response).to have_http_status(:success)
+      ids = response.parsed_body.map { |s| s['id'] }
+      expect(ids).to include(live.id)
+      expect(ids).not_to include(expired.id)
     end
 
     it 'returns an empty array when no sessions exist' do
