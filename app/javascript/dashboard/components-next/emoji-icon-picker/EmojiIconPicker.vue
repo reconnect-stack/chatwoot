@@ -181,6 +181,7 @@ const selectEmoji = emoji => {
     <div
       v-if="showTabs && activeTab === PICKER_TAB.ICONS"
       class="flex flex-col gap-1.5"
+      :style="iconHoverStyle"
     >
       <ColorPalette v-model="selectedColor" />
       <div class="flex items-center gap-1 px-2">
@@ -205,7 +206,7 @@ const selectEmoji = emoji => {
               : t('EMOJI_ICON_PICKER.STYLE.OUTLINE')
           "
           type="button"
-          class="flex items-center justify-center flex-shrink-0 transition-all rounded-lg !p-2 size-9 text-n-slate-11 hover:bg-n-alpha-2 active:scale-[0.92]"
+          class="flex items-center justify-center flex-shrink-0 transition-all rounded-lg !p-2 size-9 text-n-slate-11 hover:bg-[var(--ep-tint)] active:scale-[0.92]"
           @click="toggleIconStyle"
         >
           <span
@@ -222,7 +223,6 @@ const selectEmoji = emoji => {
       <div
         v-if="filteredIcons.length"
         class="grid grid-cols-10 h-52 gap-0.5 overflow-y-auto no-scrollbar content-start px-2 pb-2"
-        :style="iconHoverStyle"
       >
         <button
           v-for="icon in filteredIcons"
