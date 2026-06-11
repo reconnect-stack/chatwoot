@@ -57,7 +57,7 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
   end
 
   def handle_sso_authentication
-    return if enforce_session_limit_for_password_login(@resource)
+    return if !@impersonation && enforce_session_limit_for_password_login(@resource)
 
     authenticate_resource_with_sso_token
     yield @resource if block_given?
