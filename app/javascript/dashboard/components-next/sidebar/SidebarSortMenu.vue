@@ -176,6 +176,7 @@ onBeforeUnmount(clearCloseTimer);
         v-if="isOpen"
         ref="popoverRef"
         v-on-click-outside="handleClickOutside"
+        data-popover-content
         :class="fixedPosition.class"
         :style="fixedPosition.style"
         class="flex w-72 flex-col gap-1 overflow-y-auto rounded-xl bg-n-alpha-3 p-2 shadow-lg outline outline-1 outline-n-container backdrop-blur-[100px]"
