@@ -192,6 +192,17 @@ RSpec.describe DeviseOverrides::SessionsController, type: :controller do
 
         expect(response).to have_http_status(:success)
       end
+
+      it 'does not count expired tokens toward the cap' do
+        request.env['HTTP_USER_AGENT'] = browser_ua
+        # 3 expired + 2 active = 5 raw entries, but only 2 active
+        3.times { |i| seed_token("expired#{i}", expiry_offset_days: -1, with_session: false) }
+        2.times { |i| seed_token("active#{i}", expiry_offset_days: 30) }
+
+        post :create, params: login_params
+
+        expect(response).to have_http_status(:success)
+      end
     end
 
     context 'when at the limit from a browser with full tracking' do

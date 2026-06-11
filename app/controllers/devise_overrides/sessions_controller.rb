@@ -123,7 +123,12 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
   end
 
   def sessions_limit_reached?(user)
-    (user.tokens || {}).keys.size >= MAX_SESSIONS
+    active_token_count(user) >= MAX_SESSIONS
+  end
+
+  def active_token_count(user)
+    now = Time.current.to_i
+    (user.tokens || {}).count { |_, v| v['expiry'].to_i > now }
   end
 
   # Returns true when the response has been rendered (e.g., 409 picker shown). Browsers see
