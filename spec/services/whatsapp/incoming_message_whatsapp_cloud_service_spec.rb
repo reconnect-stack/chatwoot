@@ -254,6 +254,31 @@ describe Whatsapp::IncomingMessageWhatsappCloudService do
           'welcome_message' => { 'text' => 'Hi! Please let us know how we can help you.' }
         )
       end
+
+      it 'preserves the referral payload when the message contains contacts' do
+        contacts_referral_params = referral_params.deep_dup
+        parent_message = contacts_referral_params.dig(:entry, 0, :changes, 0, :value, :messages, 0)
+        parent_message[:type] = 'contacts'
+        parent_message.delete(:text)
+        parent_message[:contacts] = [{
+          name: {
+            formatted_name: 'Diana Digital',
+            first_name: 'Diana',
+            last_name: 'Digital'
+          },
+          phones: [{ phone: '+255718573302' }]
+        }]
+
+        described_class.new(inbox: whatsapp_channel.inbox, params: contacts_referral_params).perform
+
+        message = whatsapp_channel.inbox.messages.last
+        expect(message.content).to eq('Diana Digital')
+        expect(message.content_attributes['referral']).to include(
+          'source_id' => '52558118838064',
+          'headline' => 'Diana Digital',
+          'ctwa_clid' => 'AfhcQdP2E4A8wWpeb1FqUzUi'
+        )
+      end
     end
 
     context 'when message is a reply (has context)' do
