@@ -129,7 +129,7 @@ onMounted(fetchSessions);
         faded
         xs
         :label="$t('PROFILE_SETTINGS.FORM.SESSIONS_SECTION.REVOKE')"
-        color-scheme="alert"
+        color="ruby"
         @click="revokeSession(session)"
       />
     </div>
