@@ -12,14 +12,6 @@
     "VIEW_PROFILE": "View Profile",
     "BROWSER": "Browser",
     "OS": "Operating System",
-    "AD_REFERRAL": {
-      "TITLE": "Ad referral",
-      "SOURCE_TYPE": "Source type",
-      "SOURCE_ID": "Source ID",
-      "CTWA_CLID": "Click ID",
-      "VIEW_SOURCE": "View source",
-      "MEDIA_PREVIEW": "Ad media preview"
-    },
     "INITIATED_FROM": "Initiated from",
     "INITIATED_AT": "Initiated at",
     "IP_ADDRESS": "IP Address",

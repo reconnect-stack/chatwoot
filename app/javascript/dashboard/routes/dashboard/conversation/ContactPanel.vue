@@ -86,14 +86,6 @@ const currentConversationMetaData = computed(() =>
 const conversationAdditionalAttributes = computed(
   () => currentConversationMetaData.value.additional_attributes || {}
 );
-const referralAttributes = computed(() => {
-  const messages = currentChat.value.messages || [];
-  const messageWithReferral = messages.find(
-    message => message.content_attributes?.referral
-  );
-
-  return messageWithReferral?.content_attributes?.referral || {};
-});
 
 const channelType = computed(() => currentChat.value.meta?.channel);
 
@@ -205,7 +197,6 @@ onMounted(() => {
               <ConversationInfo
                 :conversation-attributes="conversationAdditionalAttributes"
                 :contact-attributes="contactAdditionalAttributes"
-                :referral-attributes="referralAttributes"
               />
             </AccordionItem>
           </div>
