@@ -145,7 +145,7 @@ const selectEmoji = emoji => {
 <template>
   <div
     role="dialog"
-    class="absolute z-20 flex flex-col overflow-hidden border shadow-xl w-[23rem] bg-n-surface-2 backdrop-blur-[100px] rounded-2xl border-n-weak dark:border-n-strong/50"
+    class="absolute z-20 flex flex-col overflow-hidden shadow-xl w-[22rem] bg-n-surface-2 backdrop-blur-[100px] rounded-2xl outline outline-1 outline-n-weak dark:outline-n-strong/50"
   >
     <div v-if="showHeader" class="flex items-center justify-between gap-2 p-2">
       <div v-if="showTabs" class="flex gap-0.5 p-0.5 rounded-lg bg-n-alpha-1">
@@ -180,10 +180,10 @@ const selectEmoji = emoji => {
     <!-- Icons panel -->
     <div
       v-if="showTabs && activeTab === PICKER_TAB.ICONS"
-      class="flex flex-col gap-1.5 px-2"
+      class="flex flex-col gap-1.5"
     >
       <ColorPalette v-model="selectedColor" />
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1 px-2">
         <Input
           v-model="iconSearch"
           size="md"
@@ -221,7 +221,7 @@ const selectEmoji = emoji => {
       </div>
       <div
         v-if="filteredIcons.length"
-        class="grid grid-cols-10 h-52 gap-0.5 overflow-y-auto no-scrollbar content-start"
+        class="grid grid-cols-10 h-52 gap-0.5 overflow-y-auto no-scrollbar content-start px-2 pb-2"
         :style="iconHoverStyle"
       >
         <button
@@ -253,25 +253,27 @@ const selectEmoji = emoji => {
     <!-- Emojis panel -->
     <div
       v-if="!showTabs || activeTab === PICKER_TAB.EMOJIS"
-      class="flex flex-col gap-1.5 px-2"
+      class="flex flex-col gap-1.5"
       :class="{ 'pt-2': !showHeader, 'mt-0.5': showHeader }"
     >
-      <Input
-        v-model="emojiSearch"
-        size="md"
-        :placeholder="t('EMOJI_ICON_PICKER.SEARCH_EMOJI')"
-        custom-input-class="!ps-9 !bg-transparent"
-        autofocus
-      >
-        <template #prefix>
-          <span
-            class="absolute z-10 -translate-y-1/2 i-lucide-search size-4 text-n-slate-10 top-1/2 start-3"
-          />
-        </template>
-      </Input>
+      <div class="px-2">
+        <Input
+          v-model="emojiSearch"
+          size="md"
+          :placeholder="t('EMOJI_ICON_PICKER.SEARCH_EMOJI')"
+          custom-input-class="!ps-9 !bg-transparent"
+          autofocus
+        >
+          <template #prefix>
+            <span
+              class="absolute z-10 -translate-y-1/2 i-lucide-search size-4 text-n-slate-10 top-1/2 start-3"
+            />
+          </template>
+        </Input>
+      </div>
       <div
         v-if="emojiSections.length"
-        class="h-60 overflow-y-auto no-scrollbar"
+        class="h-60 overflow-y-auto px-2 no-scrollbar pb-2"
       >
         <Virtualizer v-slot="{ item: section }" :data="emojiSections">
           <h5
