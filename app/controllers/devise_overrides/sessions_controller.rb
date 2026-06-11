@@ -1,5 +1,5 @@
 class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
-  MAX_SESSIONS = 5
+  MAX_SESSIONS = ENV.fetch('MAX_USER_SESSIONS', 25).to_i
 
   # Prevent session parameter from being passed
   # Unpermitted parameter: session
