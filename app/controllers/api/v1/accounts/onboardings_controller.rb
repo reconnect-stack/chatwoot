@@ -4,6 +4,8 @@ class Api::V1::Accounts::OnboardingsController < Api::V1::Accounts::BaseControll
   ONBOARDING_STEPS = %w[account_details inbox_setup].freeze
 
   def update
+    return render json: { error: 'Invalid onboarding step' }, status: :unprocessable_entity unless valid_onboarding_step?
+
     @account = Current.account
     complete_onboarding_step
 
@@ -20,11 +22,12 @@ class Api::V1::Accounts::OnboardingsController < Api::V1::Accounts::BaseControll
   # `complete_foo`, which owns persisting that step's data, advancing the cursor,
   # and any side effects. Dispatch is gated on the known-step list so the client
   # value can never `send` an arbitrary method.
-  def complete_onboarding_step
-    step = params[:onboarding_step]
-    return unless ONBOARDING_STEPS.include?(step)
+  def valid_onboarding_step?
+    ONBOARDING_STEPS.include?(params[:onboarding_step])
+  end
 
-    send("complete_#{step}")
+  def complete_onboarding_step
+    send("complete_#{params[:onboarding_step]}")
   end
 
   def complete_account_details
@@ -36,6 +39,10 @@ class Api::V1::Accounts::OnboardingsController < Api::V1::Accounts::BaseControll
   end
 
   def complete_inbox_setup
+    # Only finalize while the stored cursor still points here, so a stale or
+    # out-of-order request can't end onboarding early. Replays are no-ops.
+    return unless @account.custom_attributes['onboarding_step'] == 'inbox_setup'
+
     @account.custom_attributes.delete('onboarding_step')
     @account.save!
   end

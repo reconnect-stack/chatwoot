@@ -117,15 +117,25 @@ RSpec.describe 'Onboarding API', type: :request do
       end
     end
 
-    context 'when onboarding_step is not account_details' do
+    context 'when the declared onboarding_step is missing or unknown' do
       before { account.update!(custom_attributes: { 'onboarding_step' => 'invite_team' }) }
 
-      it 'does not clear onboarding_step' do
+      it 'rejects a request without an onboarding_step and changes nothing' do
         patch "/api/v1/accounts/#{account.id}/onboarding",
               params: { website: 'acme.com' },
               headers: admin.create_new_auth_token, as: :json
 
+        expect(response).to have_http_status(:unprocessable_entity)
         expect(account.reload.custom_attributes['onboarding_step']).to eq('invite_team')
+        expect(account.custom_attributes['website']).to be_nil
+      end
+
+      it 'rejects an unknown onboarding_step' do
+        patch "/api/v1/accounts/#{account.id}/onboarding",
+              params: { onboarding_step: 'invite_team' },
+              headers: admin.create_new_auth_token, as: :json
+
+        expect(response).to have_http_status(:unprocessable_entity)
       end
 
       it 'does not create a help center portal' do
@@ -134,6 +144,19 @@ RSpec.describe 'Onboarding API', type: :request do
                 params: { website: 'acme.com' },
                 headers: admin.create_new_auth_token, as: :json
         end.not_to change(account.portals, :count)
+      end
+    end
+
+    context 'when completing inbox_setup out of order' do
+      before { account.update!(custom_attributes: { 'onboarding_step' => 'account_details' }) }
+
+      it 'does not clear onboarding_step while the account is still on account_details' do
+        patch "/api/v1/accounts/#{account.id}/onboarding",
+              params: { onboarding_step: 'inbox_setup' },
+              headers: admin.create_new_auth_token, as: :json
+
+        expect(response).to have_http_status(:success)
+        expect(account.reload.custom_attributes['onboarding_step']).to eq('account_details')
       end
     end
   end
