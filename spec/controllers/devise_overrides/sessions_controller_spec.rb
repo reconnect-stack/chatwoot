@@ -165,6 +165,8 @@ RSpec.describe DeviseOverrides::SessionsController, type: :controller do
   end
 
   describe 'session limit enforcement' do
+    before { stub_const('DeviseOverrides::SessionsController::MAX_SESSIONS', 5) }
+
     let(:user) { create(:user, password: 'Test@123456') }
     let(:browser_ua) { 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2.1 Safari/605.1.15' }
     let(:mobile_ua) { 'okhttp/4.9.3' }
