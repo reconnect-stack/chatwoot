@@ -204,8 +204,8 @@ RSpec.describe DeviseOverrides::SessionsController, type: :controller do
 
       expect(response).to have_http_status(:success)
       token_entry = user.reload.tokens.values.last
-      # 1-hour lifespan: expiry should be within ~2 hours from now (token creation + lifespan)
-      expect(token_entry['expiry']).to be < (2.hours.from_now).to_i
+      # 2-day lifespan: expiry should be within ~3 days from now (token creation + lifespan)
+      expect(token_entry['expiry']).to be < (3.days.from_now).to_i
     end
 
     it 'creates a normal UserSession row for regular SSO login' do
