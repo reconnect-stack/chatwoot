@@ -131,9 +131,8 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
     (user.tokens || {}).count { |_, v| v['expiry'].to_i > now }
   end
 
-  # Returns true when the response has been rendered (e.g., 409 picker shown). Browsers see
-  # the picker; non-browser clients (mobile, API) auto-evict so they don't get stuck on a UI
-  # they can't render. If the user is revoking, perform the revoke and let login proceed.
+  # Returns true when a response has been rendered (e.g., 409 picker). Non-browser clients
+  # auto-evict instead of getting stuck on a UI they can't render.
   def enforce_session_limit_for_password_login(user)
     if revoking_sessions?
       revoke_sessions_for_login(user)
@@ -177,8 +176,7 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
   end
 
   def evict_oldest_session(user)
-    # Untracked tokens are pre-rollout leftovers and almost always older than any
-    # tracked session; drop those first so freshly tracked logins aren't evicted.
+    # Drop pre-rollout untracked tokens first so freshly tracked logins aren't evicted.
     return evict_oldest_token(user) if user.user_sessions.count < user.tokens.size
 
     oldest_session = user.user_sessions.order(Arel.sql('COALESCE(last_activity_at, created_at) ASC')).first
@@ -200,27 +198,12 @@ class DeviseOverrides::SessionsController < DeviseTokenAuth::SessionsController
     user.save!
   end
 
-  def handle_sessions_limit_for_login(user)
-    sessions = user.user_sessions.order(last_activity_at: :desc).map do |session|
-      {
-        id: session.id,
-        browser_name: session.browser_name,
-        browser_version: session.browser_version,
-        device_name: session.device_name,
-        platform_name: session.platform_name,
-        platform_version: session.platform_version,
-        ip_address: session.ip_address,
-        city: session.city,
-        country: session.country,
-        last_activity_at: session.last_activity_at,
-        created_at: session.created_at
-      }
-    end
+  PICKER_SESSION_FIELDS = %i[id browser_name browser_version device_name platform_name platform_version
+                             ip_address city country last_activity_at created_at].freeze
 
-    render json: {
-      sessions_limit_reached: true,
-      sessions: sessions
-    }, status: :conflict
+  def handle_sessions_limit_for_login(user)
+    sessions = user.user_sessions.order(last_activity_at: :desc).map { |s| s.slice(*PICKER_SESSION_FIELDS) }
+    render json: { sessions_limit_reached: true, sessions: sessions }, status: :conflict
   end
 
   def track_user_session
