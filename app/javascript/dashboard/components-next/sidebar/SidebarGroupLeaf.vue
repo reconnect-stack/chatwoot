@@ -13,6 +13,7 @@ const props = defineProps({
   component: { type: Function, default: null },
   badgeCount: { type: [Number, String], default: 0 },
   hideTreeLine: { type: Boolean, default: false },
+  thinTreeLine: { type: Boolean, default: false },
 });
 
 const { resolvePermissions, resolveFeatureFlag } = useSidebarContext();
@@ -22,7 +23,6 @@ const shouldRenderComponent = computed(() => {
 });
 </script>
 
-<!-- eslint-disable-next-line vue/no-root-v-if -->
 <template>
   <Policy
     :permissions="resolvePermissions(to)"
@@ -32,6 +32,8 @@ const shouldRenderComponent = computed(() => {
     :class="{
       'child-item before:bg-n-slate-4 after:bg-transparent after:border-n-slate-4 before:left-0 rtl:before:right-0':
         !hideTreeLine,
+      'before:!w-px last:after:!border-b last:after:!border-s':
+        !hideTreeLine && thinTreeLine,
     }"
   >
     <component

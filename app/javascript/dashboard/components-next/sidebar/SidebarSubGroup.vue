@@ -157,6 +157,7 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
             :key="child.name"
             :active="activeChild?.name === child.name"
             :hide-tree-line="hideLeafTreeLine"
+            thin-tree-line
           />
         </div>
         <div
