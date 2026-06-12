@@ -31,7 +31,7 @@ defineProps({
 const emit = defineEmits(['toggle']);
 
 const TREE_VERTICAL_LINE =
-  "before:content-[''] before:absolute before:top-0 before:w-0.5 before:bg-n-slate-4 before:start-[-0.5rem]";
+  "before:content-[''] before:absolute before:-top-1 before:w-0.5 before:bg-n-slate-4 before:start-[-0.5rem]";
 const TREE_ELBOW =
   "after:content-[''] after:absolute after:w-2.5 after:h-3 after:bottom-1/2 after:start-[-0.5rem] after:border-b-2 after:border-s-2 after:rounded-es after:border-n-slate-4";
 </script>
@@ -42,11 +42,11 @@ const TREE_ELBOW =
     :type="collapsible ? 'button' : undefined"
     :aria-expanded="collapsible ? isExpanded : undefined"
     :title="label"
-    class="justify-between flex items-center gap-2 px-2 py-1.5 rounded-lg h-8 text-n-slate-10 select-none min-w-0"
+    class="relative justify-between flex items-center gap-2 px-2 py-1.5 rounded-lg h-8 text-n-slate-10 select-none min-w-0"
     :class="[
       showTreeLine && TREE_VERTICAL_LINE,
       showTreeLine &&
-        (endTreeLine ? `before:h-1/5 ${TREE_ELBOW}` : 'before:h-full'),
+        (endTreeLine ? `before:h-3 ${TREE_ELBOW}` : 'before:-bottom-1'),
       {
         'w-full': !collapsible,
         'pointer-events-none': !collapsible,
@@ -63,7 +63,7 @@ const TREE_ELBOW =
     </div>
     <span
       v-if="collapsible"
-      class="size-3 flex-shrink-0 text-n-slate-10"
+      class="size-3 flex-shrink-0 text-n-slate-10 me-0.5"
       :class="isExpanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
     />
   </component>

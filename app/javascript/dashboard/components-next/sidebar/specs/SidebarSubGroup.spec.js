@@ -95,25 +95,21 @@ describe('SidebarSubGroup', () => {
     expect(wrapper.find('.sidebar-leaf').isVisible()).toBe(true);
   });
 
-  it('can render the subgroup header on the parent tree line', () => {
+  it('renders the tree line on the separator, positioned relative to it', () => {
     const wrapper = mountSubGroup({ showTreeLine: true });
     const button = wrapper.find('button');
 
+    expect(button.classes()).toContain('relative');
     expect(button.classes()).toContain('before:bg-n-slate-4');
-    expect(button.classes()).toContain('before:h-full');
-    expect(wrapper.find('span[aria-hidden="true"]').exists()).toBe(true);
+    expect(button.classes()).toContain('before:-bottom-1');
   });
 
-  it('can render the subgroup header as the end of the parent tree line', () => {
+  it('renders the end curve on the last separator', () => {
     const wrapper = mountSubGroup({ showTreeLine: true, endTreeLine: true });
     const button = wrapper.find('button');
 
-    expect(button.classes()).toContain('before:h-1/5');
+    expect(button.classes()).toContain('before:h-3');
     expect(button.classes()).toContain('after:border-b-2');
-    expect(wrapper.find('span[aria-hidden="true"]').classes()).toContain('h-4');
-    expect(wrapper.find('span[aria-hidden="true"]').classes()).not.toContain(
-      'bottom-0'
-    );
   });
 
   it('draws nested item tree lines via the leaf connectors', () => {

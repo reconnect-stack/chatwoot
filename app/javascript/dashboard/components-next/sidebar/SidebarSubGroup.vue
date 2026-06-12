@@ -68,9 +68,8 @@ const isScrollable = computed(() => {
 
 const scrollEnd = ref(false);
 
-const showSeparatorTreeLine = computed(
-  () => props.showTreeLine && props.isExpanded
-);
+const CHILDREN_TRUNK =
+  "before:content-[''] before:absolute before:top-0 before:bottom-0 before:w-0.5 before:bg-n-slate-4 before:start-[-0.5rem]";
 
 const hideLeafTreeLine = computed(
   () => props.showTreeLine && !props.isExpanded
@@ -124,15 +123,6 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
 <template>
   <li class="relative flex flex-col list-none min-w-0">
     <template v-if="hasAccessibleItems">
-      <span
-        v-if="showSeparatorTreeLine"
-        aria-hidden="true"
-        class="absolute top-0 w-0.5 bg-n-slate-4 ltr:left-3 rtl:right-3"
-        :class="{
-          'bottom-0': !endTreeLine,
-          'h-4': endTreeLine,
-        }"
-      />
       <SidebarGroupSeparator
         v-show="isExpanded"
         :label
@@ -147,9 +137,10 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
       <ul
         v-if="children.length"
         class="m-0 list-none reset-base relative group min-w-0"
-        :class="{
-          'ltr:ml-5 rtl:mr-5': collapsible,
-        }"
+        :class="[
+          { 'ms-5': collapsible },
+          showTreeLine && !endTreeLine && CHILDREN_TRUNK,
+        ]"
       >
         <div
           ref="scrollableContainer"
