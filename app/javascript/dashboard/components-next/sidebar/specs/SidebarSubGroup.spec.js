@@ -54,9 +54,10 @@ const mountSubGroup = props => {
             props: {
               label: { type: String, required: true },
               hideTreeLine: { type: Boolean, default: false },
+              thinTreeLine: { type: Boolean, default: false },
             },
             template:
-              '<li class="sidebar-leaf" :data-hide-tree-line="String(hideTreeLine)">{{ label }}</li>',
+              '<li class="sidebar-leaf" :data-hide-tree-line="String(hideTreeLine)" :data-thin-tree-line="String(thinTreeLine)">{{ label }}</li>',
           },
         },
       },
@@ -120,10 +121,12 @@ describe('SidebarSubGroup', () => {
     ).toBe('false');
   });
 
-  it('wraps the subgroup items in a tree-line container with an end curve', () => {
+  it('marks nested item connectors as thin', () => {
     const wrapper = mountSubGroup({ showTreeLine: true });
 
-    expect(wrapper.find('.sidebar-group-children').exists()).toBe(true);
+    expect(
+      wrapper.find('.sidebar-leaf').attributes('data-thin-tree-line')
+    ).toBe('true');
   });
 
   it('minimizes the section and stores it by account and section name', async () => {

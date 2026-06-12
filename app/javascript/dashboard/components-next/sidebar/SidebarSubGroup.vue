@@ -146,7 +146,6 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
           ref="scrollableContainer"
           class="min-w-0"
           :class="{
-            'sidebar-group-children': showTreeLine,
             'max-h-60 overflow-y-scroll no-scrollbar': isScrollable,
           }"
         >
