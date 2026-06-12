@@ -42,7 +42,7 @@ const TREE_ELBOW =
     :type="collapsible ? 'button' : undefined"
     :aria-expanded="collapsible ? isExpanded : undefined"
     :title="label"
-    class="relative flex items-center gap-2 px-2 py-1.5 rounded-lg h-8 text-n-slate-10 select-none min-w-0"
+    class="justify-between flex items-center gap-2 px-2 py-1.5 rounded-lg h-8 text-n-slate-10 select-none min-w-0"
     :class="[
       showTreeLine && TREE_VERTICAL_LINE,
       showTreeLine &&
@@ -55,16 +55,15 @@ const TREE_ELBOW =
     ]"
     @click.stop="emit('toggle')"
   >
-    <Icon v-if="icon" :icon="icon" class="size-4" />
-    <span
-      class="text-sm font-medium leading-5 flex-grow truncate text-start"
-      :class="{ 'ltr:pr-7 rtl:pl-7': collapsible }"
-    >
-      {{ label }}
-    </span>
+    <div class="min-w-0 inline-flex gap-2 items-center">
+      <Icon v-if="icon" :icon="icon" class="size-4 flex-shrink-0" />
+      <span class="text-sm font-medium leading-5 flex-grow truncate text-start">
+        {{ label }}
+      </span>
+    </div>
     <span
       v-if="collapsible"
-      class="absolute top-1/2 -translate-y-1/2 size-3 flex-shrink-0 text-n-slate-10 ltr:right-4 rtl:left-4"
+      class="size-3 flex-shrink-0 text-n-slate-10"
       :class="isExpanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
     />
   </component>
