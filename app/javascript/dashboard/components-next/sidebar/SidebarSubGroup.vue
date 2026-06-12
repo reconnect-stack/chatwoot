@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import { useMapGetter } from 'dashboard/composables/store';
 import { LOCAL_STORAGE_KEYS } from 'dashboard/constants/localStorage';
 import { LocalStorage } from 'shared/helpers/localStorage';
+import Icon from 'next/icon/Icon.vue';
 import SidebarGroupLeaf from './SidebarGroupLeaf.vue';
 import SidebarGroupSeparator from './SidebarGroupSeparator.vue';
 
@@ -67,6 +68,14 @@ const isScrollable = computed(() => {
 
 const scrollEnd = ref(false);
 
+const showSeparatorTreeLine = computed(
+  () => props.showTreeLine && props.isExpanded
+);
+
+const hideLeafTreeLine = computed(
+  () => props.showTreeLine && !props.isExpanded
+);
+
 const toggleSubGroup = () => {
   if (!props.collapsible) return;
 
@@ -113,10 +122,10 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
 </script>
 
 <template>
-  <li class="relative list-none min-w-0">
+  <li class="relative flex flex-col list-none min-w-0">
     <template v-if="hasAccessibleItems">
       <span
-        v-if="showTreeLine"
+        v-if="showSeparatorTreeLine"
         aria-hidden="true"
         class="absolute top-0 w-0.5 bg-n-slate-4 ltr:left-3 rtl:right-3"
         :class="{
@@ -139,27 +148,15 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
         v-if="children.length"
         class="m-0 list-none reset-base relative group min-w-0"
         :class="{
-          'w-[calc(100%-1.25rem)] ltr:ml-5 rtl:mr-5': collapsible,
+          'ltr:ml-5 rtl:mr-5': collapsible,
         }"
       >
-        <span
-          v-if="showTreeLine && isSubGroupExpanded"
-          aria-hidden="true"
-          class="absolute top-0 bottom-4 w-px bg-n-slate-4 start-3"
-        />
-        <span
-          v-if="showTreeLine && isSubGroupExpanded"
-          aria-hidden="true"
-          class="absolute w-2.5 h-3 bottom-[calc(1rem-2px)] start-3 border-b border-s rounded-es border-n-slate-4"
-        />
-        <!-- Each element has h-8, which is 32px, we will show 7 items with one hidden at the end,
-        which is 14rem. Then we add 16px so that we have some text visible from the next item  -->
         <div
           ref="scrollableContainer"
           class="min-w-0"
           :class="{
-            'max-h-[calc(14rem+16px)] overflow-y-scroll no-scrollbar':
-              isScrollable,
+            'sidebar-group-children': showTreeLine,
+            'max-h-60 overflow-y-scroll no-scrollbar': isScrollable,
           }"
         >
           <SidebarGroupLeaf
@@ -168,7 +165,7 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
             v-bind="child"
             :key="child.name"
             :active="activeChild?.name === child.name"
-            :hide-tree-line="showTreeLine"
+            :hide-tree-line="hideLeafTreeLine"
           />
         </div>
         <div
@@ -176,38 +173,10 @@ watch([hasActiveChild, storageKey], expandSubGroupOnActiveChild, {
           v-show="!scrollEnd"
           class="absolute bg-gradient-to-t from-n-background w-full h-12 to-transparent -bottom-1 pointer-events-none flex items-end justify-end px-2 animate-fade-in-up"
         >
-          <svg
-            width="16"
-            height="24"
-            viewBox="0 0 16 24"
-            fill="none"
-            class="text-n-slate-9 opacity-50 group-hover:opacity-100"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M4 4L8 8L12 4"
-              stroke="currentColor"
-              opacity="0.5"
-              stroke-width="1.33333"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M4 10L8 14L12 10"
-              stroke="currentColor"
-              opacity="0.75"
-              stroke-width="1.33333"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M4 16L8 20L12 16"
-              stroke="currentColor"
-              stroke-width="1.33333"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+          <Icon
+            icon="i-woot-chevrons-down"
+            class="w-4 h-6 text-n-slate-9 opacity-50 group-hover:opacity-100"
+          />
         </div>
       </ul>
     </template>

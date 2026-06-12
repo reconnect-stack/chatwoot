@@ -29,6 +29,11 @@ defineProps({
 });
 
 const emit = defineEmits(['toggle']);
+
+const TREE_VERTICAL_LINE =
+  "before:content-[''] before:absolute before:top-0 before:w-0.5 before:bg-n-slate-4 before:start-[-0.5rem]";
+const TREE_ELBOW =
+  "after:content-[''] after:absolute after:w-2.5 after:h-3 after:bottom-1/2 after:start-[-0.5rem] after:border-b-2 after:border-s-2 after:rounded-es after:border-n-slate-4";
 </script>
 
 <template>
@@ -38,26 +43,18 @@ const emit = defineEmits(['toggle']);
     :aria-expanded="collapsible ? isExpanded : undefined"
     :title="label"
     class="relative flex items-center gap-2 px-2 py-1.5 rounded-lg h-8 text-n-slate-10 select-none min-w-0"
-    :class="{
-      'w-full': !collapsible,
-      'pointer-events-none': !collapsible,
-      'w-[calc(100%-1.25rem)] ltr:ml-5 rtl:mr-5 cursor-pointer hover:bg-n-alpha-2':
-        collapsible,
-      'ltr:!ml-3 rtl:!mr-3 ltr:!pl-4 rtl:!pr-4': showTreeLine,
-    }"
+    :class="[
+      showTreeLine && TREE_VERTICAL_LINE,
+      showTreeLine &&
+        (endTreeLine ? `before:h-1/5 ${TREE_ELBOW}` : 'before:h-full'),
+      {
+        'w-full': !collapsible,
+        'pointer-events-none': !collapsible,
+        'ms-5 cursor-pointer hover:bg-n-alpha-2': collapsible,
+      },
+    ]"
     @click.stop="emit('toggle')"
   >
-    <span
-      v-if="showTreeLine"
-      aria-hidden="true"
-      class="absolute top-0 w-0.5 bg-n-slate-4 start-0"
-      :class="endTreeLine ? 'h-[20%]' : 'h-full'"
-    />
-    <span
-      v-if="showTreeLine && endTreeLine"
-      aria-hidden="true"
-      class="absolute w-2.5 h-3 bottom-[calc(50%-2px)] start-0 border-b-[0.125rem] border-s-[0.125rem] rounded-es border-n-slate-4"
-    />
     <Icon v-if="icon" :icon="icon" class="size-4" />
     <span
       class="text-sm font-medium leading-5 flex-grow truncate text-start"

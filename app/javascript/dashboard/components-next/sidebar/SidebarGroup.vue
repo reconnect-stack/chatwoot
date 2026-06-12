@@ -377,4 +377,24 @@ watch(
   border-top-width: 0px;
   border-radius: 0 0 4px 0px;
 }
+
+/* Nested subgroup connectors use a thinner 1px line than the outer group trunk */
+.sidebar-group-children .sidebar-group-children .child-item::before {
+  width: 1px;
+}
+
+.sidebar-group-children
+  .sidebar-group-children
+  > .child-item:last-child::after {
+  border-bottom-width: 1px;
+  border-left-width: 1px;
+}
+
+#app[dir='rtl']
+  .sidebar-group-children
+  .sidebar-group-children
+  > .child-item:last-child::after {
+  border-bottom-width: 1px;
+  border-right-width: 1px;
+}
 </style>

@@ -97,44 +97,37 @@ describe('SidebarSubGroup', () => {
 
   it('can render the subgroup header on the parent tree line', () => {
     const wrapper = mountSubGroup({ showTreeLine: true });
-    const separatorLines = wrapper.findAll('button > span[aria-hidden="true"]');
+    const button = wrapper.find('button');
 
-    expect(separatorLines).toHaveLength(1);
-    expect(separatorLines[0].classes()).toContain('h-full');
+    expect(button.classes()).toContain('before:bg-n-slate-4');
+    expect(button.classes()).toContain('before:h-full');
     expect(wrapper.find('span[aria-hidden="true"]').exists()).toBe(true);
   });
 
   it('can render the subgroup header as the end of the parent tree line', () => {
     const wrapper = mountSubGroup({ showTreeLine: true, endTreeLine: true });
-    const separatorLines = wrapper.findAll('button > span[aria-hidden="true"]');
+    const button = wrapper.find('button');
 
-    expect(separatorLines).toHaveLength(2);
-    expect(separatorLines[0].classes()).toContain('h-[20%]');
-    expect(separatorLines[1].classes()).toContain('border-b-[0.125rem]');
+    expect(button.classes()).toContain('before:h-1/5');
+    expect(button.classes()).toContain('after:border-b-2');
     expect(wrapper.find('span[aria-hidden="true"]').classes()).toContain('h-4');
     expect(wrapper.find('span[aria-hidden="true"]').classes()).not.toContain(
       'bottom-0'
     );
   });
 
-  it('hides nested item tree lines', () => {
+  it('draws nested item tree lines via the leaf connectors', () => {
     const wrapper = mountSubGroup({ showTreeLine: true });
 
     expect(
       wrapper.find('.sidebar-leaf').attributes('data-hide-tree-line')
-    ).toBe('true');
+    ).toBe('false');
   });
 
-  it('renders a subtle tree line with an end curve within the subgroup items', () => {
+  it('wraps the subgroup items in a tree-line container with an end curve', () => {
     const wrapper = mountSubGroup({ showTreeLine: true });
-    const subTreeLines = wrapper.findAll('ul > span[aria-hidden="true"]');
 
-    expect(subTreeLines).toHaveLength(2);
-    expect(subTreeLines[0].classes()).toContain('w-px');
-    expect(subTreeLines[0].classes()).toContain('bg-n-slate-4');
-    expect(subTreeLines[1].classes()).toContain('border-b');
-    expect(subTreeLines[1].classes()).toContain('border-s');
-    expect(subTreeLines[1].classes()).toContain('border-n-slate-4');
+    expect(wrapper.find('.sidebar-group-children').exists()).toBe(true);
   });
 
   it('minimizes the section and stores it by account and section name', async () => {
