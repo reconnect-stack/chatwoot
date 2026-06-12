@@ -4,6 +4,7 @@ import { vOnClickOutside } from '@vueuse/components';
 import { useI18n } from 'vue-i18n';
 import { useDropdownPosition } from 'dashboard/composables/useDropdownPosition';
 import Button from 'dashboard/components-next/button/Button.vue';
+import DropdownMenu from 'dashboard/components-next/dropdown-menu/DropdownMenu.vue';
 import TeleportWithDirection from 'dashboard/components-next/TeleportWithDirection.vue';
 import { SIDEBAR_SORT_KEYS } from 'dashboard/helper/sidebarSort';
 
@@ -98,21 +99,18 @@ const getSortGroupLabel = groupKey => {
   return '';
 };
 
-const translatedOptions = computed(() =>
-  props.options.map(option => ({
-    value: option,
-    label: getSortOptionLabel(option),
-  }))
-);
-
-const groupedOptions = computed(() =>
+const sortMenuSections = computed(() =>
   SORT_OPTION_GROUPS.map(group => ({
-    key: group.key,
-    label: getSortGroupLabel(group.key),
-    options: translatedOptions.value.filter(option =>
-      group.options.includes(option.value)
-    ),
-  })).filter(group => group.options.length)
+    title: getSortGroupLabel(group.key),
+    items: group.options
+      .filter(option => props.options.includes(option))
+      .map(option => ({
+        label: getSortOptionLabel(option),
+        value: option,
+        action: 'sort',
+        isActive: option === props.activeSort,
+      })),
+  })).filter(section => section.items.length)
 );
 
 const clearCloseTimer = () => {
@@ -145,8 +143,8 @@ const handleClickOutside = event => {
   closeMenu();
 };
 
-const handleSortChange = sortBy => {
-  emit('update:sort', sortBy);
+const handleSortChange = ({ value }) => {
+  emit('update:sort', value);
   closeMenu();
 };
 
@@ -156,7 +154,7 @@ onBeforeUnmount(clearCloseTimer);
 <template>
   <div
     ref="triggerRef"
-    class="relative invisible flex-shrink-0 opacity-0 pointer-events-none transition-opacity duration-150 group-hover/sidebar-section:visible group-hover/sidebar-section:opacity-100 group-hover/sidebar-section:pointer-events-auto"
+    class="relative invisible flex-shrink-0 opacity-0 pointer-events-none transition-opacity duration-150 group-hover/sidebar-section:visible group-hover/sidebar-section:opacity-100 group-hover/sidebar-section:pointer-events-auto max-md:visible max-md:opacity-100 max-md:pointer-events-auto"
     :class="{ '!visible !opacity-100 !pointer-events-auto': isOpen }"
     @mouseenter="openMenu"
     @mouseleave="scheduleClose"
@@ -172,47 +170,26 @@ onBeforeUnmount(clearCloseTimer);
       @click.stop="openMenu"
     />
     <TeleportWithDirection>
-      <div
+      <DropdownMenu
         v-if="isOpen"
         ref="popoverRef"
         v-on-click-outside="handleClickOutside"
         data-popover-content
+        :menu-sections="sortMenuSections"
         :class="fixedPosition.class"
         :style="fixedPosition.style"
-        class="flex w-72 flex-col gap-1 overflow-y-auto rounded-xl bg-n-alpha-3 p-2 shadow-lg outline outline-1 outline-n-container backdrop-blur-[100px]"
-        role="menu"
+        class="w-60 !fixed"
+        @action="handleSortChange"
         @mouseenter="clearCloseTimer"
         @mouseleave="scheduleClose"
       >
-        <div
-          v-for="group in groupedOptions"
-          :key="group.key"
-          class="flex flex-col gap-0.5 py-1"
-          role="group"
-          :aria-label="group.label"
-        >
-          <span class="px-2 py-1 text-sm font-medium text-n-slate-10">
-            {{ group.label }}
-          </span>
-          <button
-            v-for="option in group.options"
-            :key="option.value"
-            type="button"
-            class="flex h-9 w-full items-center justify-between gap-3 rounded-lg px-2 text-left text-sm font-medium text-n-slate-12 hover:bg-n-alpha-2 focus-visible:bg-n-alpha-2 focus-visible:outline-none"
-            role="menuitemradio"
-            :aria-checked="option.value === activeSort"
-            @click.stop="handleSortChange(option.value)"
-          >
-            <span class="min-w-0 flex-1 truncate">
-              {{ option.label }}
-            </span>
-            <span
-              v-if="option.value === activeSort"
-              class="i-lucide-check size-4 flex-shrink-0 text-n-slate-11"
-            />
-          </button>
-        </div>
-      </div>
+        <template #trailing-icon="{ item }">
+          <span
+            v-if="item.isActive"
+            class="i-lucide-check ms-auto size-4 flex-shrink-0 text-n-slate-11"
+          />
+        </template>
+      </DropdownMenu>
     </TeleportWithDirection>
   </div>
 </template>
