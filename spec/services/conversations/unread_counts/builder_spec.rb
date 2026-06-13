@@ -75,6 +75,56 @@ RSpec.describe Conversations::UnreadCounts::Builder do
     end
   end
 
+  describe '#build_filters_for!' do
+    before do
+      create(:inbox_member, user: assignee, inbox: inbox)
+    end
+
+    it 'stores unread open conversations by mentions and participating dimensions' do
+      mentioned_conversation = create_unread_conversation(account: account, inbox: inbox)
+      participating_conversation = create_unread_conversation(account: account, inbox: inbox)
+      resolved_mentioned_conversation = create_unread_conversation(account: account, inbox: inbox)
+      inaccessible_conversation = create_unread_conversation(account: account, inbox: create(:inbox, account: account))
+      resolved_mentioned_conversation.update!(status: :resolved)
+
+      create(:mention, account: account, conversation: mentioned_conversation, user: assignee)
+      create(:mention, account: account, conversation: resolved_mentioned_conversation, user: assignee)
+      create(:mention, account: account, conversation: inaccessible_conversation, user: assignee)
+      create(:conversation_participant, account: account, conversation: participating_conversation, user: assignee)
+
+      described_class.new(account).build_filters_for!(assignee)
+
+      expect(store.filters_ready?(account.id, assignee.id)).to be(true)
+      expect(redis_set_members(store.user_mentions_key(account.id, assignee.id))).to contain_exactly(mentioned_conversation.id.to_s)
+      expect(redis_set_members(store.user_participating_key(account.id, assignee.id))).to contain_exactly(participating_conversation.id.to_s)
+    end
+
+    it 'stores folder memberships using the saved filter status conditions' do
+      resolved_conversation = create_unread_conversation(account: account, inbox: inbox)
+      resolved_conversation.update!(status: :resolved)
+      create_unread_conversation(account: account, inbox: inbox, assignee: assignee)
+      custom_filter = create(
+        :custom_filter, account: account, user: assignee, filter_type: :conversation, query: filter_query('status', ['resolved'])
+      )
+
+      described_class.new(account).build_filters_for!(assignee)
+
+      expect(redis_set_members(store.user_folder_key(account.id, assignee.id, custom_filter.id))).to contain_exactly(resolved_conversation.id.to_s)
+    end
+
+    it 'skips invalid folder filters and still marks the user filter cache ready' do
+      create_unread_conversation(account: account, inbox: inbox)
+      invalid_filter = create(
+        :custom_filter, account: account, user: assignee, filter_type: :conversation, query: filter_query('missing_attribute', ['open'])
+      )
+
+      described_class.new(account).build_filters_for!(assignee)
+
+      expect(store.filters_ready?(account.id, assignee.id)).to be(true)
+      expect(redis_set_members(store.user_folder_key(account.id, assignee.id, invalid_filter.id))).to be_empty
+    end
+  end
+
   def create_read_conversation
     conversation = create(:conversation, account: account, inbox: inbox, agent_last_seen_at: 1.minute.from_now)
     create(:message, account: account, inbox: inbox, conversation: conversation, message_type: :incoming)
@@ -89,5 +139,19 @@ RSpec.describe Conversations::UnreadCounts::Builder do
 
   def redis_set_members(key)
     Redis::Alfred.pipelined { |pipeline| pipeline.smembers(key) }.first
+  end
+
+  def filter_query(attribute_key, values)
+    {
+      payload: [
+        {
+          attribute_key: attribute_key,
+          filter_operator: 'equal_to',
+          values: values,
+          query_operator: nil,
+          custom_attribute_type: ''
+        }
+      ]
+    }
   end
 end

@@ -144,7 +144,40 @@ RSpec.describe 'Conversations API', type: :request do
             'all_count' => 1,
             'inboxes' => { visible_inbox.id.to_s => 1 },
             'labels' => { label.id.to_s => 1 },
-            'teams' => {}
+            'teams' => {},
+            'mentions_count' => 0,
+            'participating_count' => 0,
+            'folders' => {}
+          )
+        end
+
+        it 'returns unread counts for mentions, participating conversations, and folders' do
+          mentioned_conversation = create_unread_conversation(account: account, inbox: visible_inbox)
+          participating_conversation = create_unread_conversation(account: account, inbox: visible_inbox)
+          resolved_conversation = create_unread_conversation(account: account, inbox: visible_inbox)
+          resolved_conversation.update!(status: :resolved)
+          custom_filter = create(:custom_filter, account: account, user: agent, filter_type: :conversation, query: {
+                                   payload: [{
+                                     attribute_key: 'status',
+                                     filter_operator: 'equal_to',
+                                     values: ['resolved'],
+                                     query_operator: nil,
+                                     custom_attribute_type: ''
+                                   }]
+                                 })
+
+          create(:mention, account: account, conversation: mentioned_conversation, user: agent)
+          create(:conversation_participant, account: account, conversation: participating_conversation, user: agent)
+
+          get "/api/v1/accounts/#{account.id}/conversations/unread_counts",
+              headers: agent.create_new_auth_token,
+              as: :json
+
+          expect(response).to have_http_status(:success)
+          expect(response.parsed_body['payload']).to include(
+            'mentions_count' => 1,
+            'participating_count' => 1,
+            'folders' => { custom_filter.id.to_s => 1 }
           )
         end
 

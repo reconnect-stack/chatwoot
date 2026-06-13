@@ -187,6 +187,15 @@ const getLabelUnreadCount = useMapGetter(
 const getTeamUnreadCount = useMapGetter(
   'conversationUnreadCounts/getTeamUnreadCount'
 );
+const mentionsUnreadCount = useMapGetter(
+  'conversationUnreadCounts/getMentionsUnreadCount'
+);
+const participatingUnreadCount = useMapGetter(
+  'conversationUnreadCounts/getParticipatingUnreadCount'
+);
+const getFolderUnreadCount = useMapGetter(
+  'conversationUnreadCounts/getFolderUnreadCount'
+);
 const teams = useMapGetter('teams/getMyTeams');
 const contactCustomViews = useMapGetter('customViews/getContactCustomViews');
 const conversationCustomViews = useMapGetter(
@@ -307,12 +316,14 @@ const menuItems = computed(() => {
         {
           name: 'Mentions',
           label: t('SIDEBAR.MENTIONED_CONVERSATIONS'),
+          badgeCount: mentionsUnreadCount.value,
           activeOn: ['conversation_through_mentions'],
           to: accountScopedRoute('conversation_mentions'),
         },
         {
           name: 'Participating',
           label: t('SIDEBAR.PARTICIPATING_CONVERSATIONS'),
+          badgeCount: participatingUnreadCount.value,
           activeOn: ['conversation_through_participating'],
           to: accountScopedRoute('conversation_participating'),
         },
@@ -330,6 +341,7 @@ const menuItems = computed(() => {
           children: conversationCustomViews.value.map(view => ({
             name: `${view.name}-${view.id}`,
             label: view.name,
+            badgeCount: getFolderUnreadCount.value(view.id),
             to: accountScopedRoute('folder_conversations', { id: view.id }),
           })),
         },

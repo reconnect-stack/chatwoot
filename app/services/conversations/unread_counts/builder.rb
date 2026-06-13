@@ -1,5 +1,11 @@
 class Conversations::UnreadCounts::Builder
   BATCH_SIZE = 1000
+  FILTER_ERRORS = [
+    CustomExceptions::CustomFilter::InvalidAttribute,
+    CustomExceptions::CustomFilter::InvalidOperator,
+    CustomExceptions::CustomFilter::InvalidQueryOperator,
+    CustomExceptions::CustomFilter::InvalidValue
+  ].freeze
 
   attr_reader :account
 
@@ -24,10 +30,22 @@ class Conversations::UnreadCounts::Builder
     build_assignment!
   end
 
+  def build_filters_for!(user)
+    store.clear_user_filters!(account.id, user.id)
+    store.add_filter_memberships(
+      account_id: account.id,
+      user_id: user.id,
+      mentions: mentioned_unread_conversation_ids(user),
+      participating: participating_unread_conversation_ids(user),
+      folders: folder_unread_conversation_ids(user)
+    )
+    store.mark_filters_ready!(account.id, user.id)
+  end
+
   private
 
   def write_memberships(assignment:)
-    unread_conversations.in_batches(of: BATCH_SIZE) do |relation|
+    unread_conversations(open_only: true).in_batches(of: BATCH_SIZE) do |relation|
       columns = %i[id inbox_id assignee_id cached_label_list team_id]
       memberships = relation.pluck(*columns).map do |id, inbox_id, assignee_id, cached_label_list, team_id|
         {
@@ -43,14 +61,54 @@ class Conversations::UnreadCounts::Builder
     end
   end
 
-  def unread_conversations
-    account.conversations
-           .open
-           .joins(:messages)
-           .merge(Message.incoming.reorder(nil))
-           .where(messages: { account_id: account.id })
-           .where(unread_since_last_seen_condition)
-           .distinct
+  def mentioned_unread_conversation_ids(user)
+    visible_unread_conversations(user, open_only: true)
+      .joins(:mentions)
+      .where(mentions: { account_id: account.id, user_id: user.id })
+      .pluck(:id)
+  end
+
+  def participating_unread_conversation_ids(user)
+    unread_conversations(open_only: true)
+      .joins(:conversation_participants)
+      .where(conversation_participants: { account_id: account.id, user_id: user.id })
+      .pluck(:id)
+  end
+
+  def folder_unread_conversation_ids(user)
+    conversation_custom_filters(user).each_with_object({}) do |custom_filter, result|
+      result[custom_filter.id] = unread_ids_for_filter(custom_filter, user)
+    rescue *FILTER_ERRORS
+      next
+    end
+  end
+
+  def conversation_custom_filters(user)
+    account.custom_filters.where(user: user, filter_type: :conversation)
+  end
+
+  def unread_ids_for_filter(custom_filter, user)
+    filter_relation = ::Conversations::FilterService.new(custom_filter.query.with_indifferent_access, user, account).filtered_relation
+    filter_relation
+      .where(id: unread_conversations(open_only: false).select(:id))
+      .reorder(nil)
+      .distinct
+      .pluck(:id)
+  end
+
+  def unread_conversations(open_only:)
+    conversations = account.conversations
+    conversations = conversations.open if open_only
+
+    conversations.joins(:messages)
+                 .merge(Message.incoming.reorder(nil))
+                 .where(messages: { account_id: account.id })
+                 .where(unread_since_last_seen_condition)
+                 .distinct
+  end
+
+  def visible_unread_conversations(user, open_only:)
+    ::Conversations::PermissionFilterService.new(unread_conversations(open_only: open_only), user, account).perform
   end
 
   def unread_since_last_seen_condition
