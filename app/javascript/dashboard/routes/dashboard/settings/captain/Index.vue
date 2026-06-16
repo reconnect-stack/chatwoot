@@ -1,118 +1,95 @@
 <script setup>
-import { computed, onMounted } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { storeToRefs } from 'pinia';
 import { useAlert } from 'dashboard/composables';
-import { useAccount } from 'dashboard/composables/useAccount';
-import { useCaptain } from 'dashboard/composables/useCaptain';
-import { useConfig } from 'dashboard/composables/useConfig';
 import { useCaptainConfigStore } from 'dashboard/store/captain/preferences';
 
 import SettingsLayout from '../SettingsLayout.vue';
 import BaseSettingsHeader from '../components/BaseSettingsHeader.vue';
 import SectionLayout from '../account/components/SectionLayout.vue';
-import ModelSelector from './components/ModelSelector.vue';
-import FeatureToggle from './components/FeatureToggle.vue';
-import CaptainPaywall from 'next/captain/pageComponents/Paywall.vue';
+import Button from 'dashboard/components-next/button/Button.vue';
+import Checkbox from 'dashboard/components-next/checkbox/Checkbox.vue';
+import Input from 'dashboard/components-next/input/Input.vue';
+import Switch from 'dashboard/components-next/switch/Switch.vue';
 
 const { t } = useI18n();
-const { captainEnabled } = useCaptain();
-const { isEnterprise, enterprisePlanName } = useConfig();
-const { isOnChatwootCloud } = useAccount();
 
 const captainConfigStore = useCaptainConfigStore();
-const { uiFlags } = storeToRefs(captainConfigStore);
+const { externalAssistant, uiFlags } = storeToRefs(captainConfigStore);
 
 const isLoading = computed(() => uiFlags.value.isFetching);
+const isSavingExternalAssistant = ref(false);
+const externalAssistantForm = ref({
+  enabled: false,
+  service_url: '',
+  access_token: '',
+  assistant_id: '',
+  settings: {
+    send_conversation_context: true,
+    send_contact_details: true,
+    send_private_notes: false,
+  },
+});
 
-const modelFeatures = computed(() => [
+const externalAssistantContextOptions = computed(() => [
   {
-    key: 'editor',
-    title: t('CAPTAIN_SETTINGS.MODEL_CONFIG.EDITOR.TITLE'),
-    description: t('CAPTAIN_SETTINGS.MODEL_CONFIG.EDITOR.DESCRIPTION'),
+    key: 'send_conversation_context',
+    label: t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.CONTEXT.CONVERSATION'),
   },
   {
-    key: 'assistant',
-    title: t('CAPTAIN_SETTINGS.MODEL_CONFIG.ASSISTANT.TITLE'),
-    description: t('CAPTAIN_SETTINGS.MODEL_CONFIG.ASSISTANT.DESCRIPTION'),
-    enterprise: true,
+    key: 'send_contact_details',
+    label: t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.CONTEXT.CONTACT'),
   },
   {
-    key: 'copilot',
-    title: t('CAPTAIN_SETTINGS.MODEL_CONFIG.COPILOT.TITLE'),
-    description: t('CAPTAIN_SETTINGS.MODEL_CONFIG.COPILOT.DESCRIPTION'),
-    enterprise: true,
-  },
-]);
-
-const featureToggles = computed(() => [
-  {
-    key: 'label_suggestion',
-  },
-  {
-    key: 'help_center_search',
-    enterprise: true,
-  },
-  {
-    key: 'audio_transcription',
-    enterprise: true,
+    key: 'send_private_notes',
+    label: t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.CONTEXT.PRIVATE_NOTES'),
   },
 ]);
 
-const shouldShowFeature = feature => {
-  // Cloud will always see these features as long as captain is enabled
-  if (isOnChatwootCloud.value && captainEnabled) {
-    return true;
-  }
+function syncExternalAssistantForm(config = {}) {
+  const settings = config.settings || {};
+  externalAssistantForm.value = {
+    enabled: config.enabled === true,
+    service_url: config.service_url || '',
+    access_token: '',
+    assistant_id: config.assistant_id || '',
+    settings: {
+      send_conversation_context: settings.send_conversation_context !== false,
+      send_contact_details: settings.send_contact_details !== false,
+      send_private_notes: settings.send_private_notes === true,
+    },
+  };
+}
 
-  if (feature.enterprise) {
-    // if the app is in enterprise mode, then we can show the feature
-    // this is not the installation plan, but when the enterprise folder is missing
-    return isEnterprise;
-  }
-
-  return true;
-};
-
-const isFeatureAccessible = feature => {
-  // Cloud will always see these features as long as captain is enabled
-  if (isOnChatwootCloud.value && captainEnabled) {
-    return true;
-  }
-
-  if (feature.enterprise) {
-    // plan is shown, but is it accessible?
-    // This ensures that the instance has purchased the enterprise license, and only then we allow
-    // access
-    return isEnterprise && enterprisePlanName === 'enterprise';
-  }
-
-  return true;
-};
-
-async function handleFeatureToggle({ feature, enabled }) {
+async function handleExternalAssistantSubmit() {
   try {
+    isSavingExternalAssistant.value = true;
+    const form = externalAssistantForm.value;
+    const payload = {
+      enabled: form.enabled,
+      service_url: form.service_url,
+      assistant_id: form.assistant_id,
+      settings: form.settings,
+    };
+
+    if (form.access_token) {
+      payload.access_token = form.access_token;
+    }
+
     await captainConfigStore.updatePreferences({
-      captain_features: { [feature]: enabled },
+      external_assistant: payload,
     });
     useAlert(t('CAPTAIN_SETTINGS.API.SUCCESS'));
   } catch (error) {
     useAlert(t('CAPTAIN_SETTINGS.API.ERROR'));
     captainConfigStore.fetch();
+  } finally {
+    isSavingExternalAssistant.value = false;
   }
 }
 
-async function handleModelChange({ feature, model }) {
-  try {
-    await captainConfigStore.updatePreferences({
-      captain_models: { [feature]: model },
-    });
-    useAlert(t('CAPTAIN_SETTINGS.API.SUCCESS'));
-  } catch (error) {
-    useAlert(t('CAPTAIN_SETTINGS.API.ERROR'));
-    captainConfigStore.fetch();
-  }
-}
+watch(externalAssistant, syncExternalAssistantForm, { immediate: true });
 
 onMounted(() => {
   captainConfigStore.fetch();
@@ -122,60 +99,105 @@ onMounted(() => {
 <template>
   <SettingsLayout
     :is-loading="isLoading"
-    :no-records-message="t('CAPTAIN_SETTINGS.NOT_ENABLED')"
     :loading-message="t('CAPTAIN_SETTINGS.LOADING')"
   >
     <template #header>
       <BaseSettingsHeader
         :title="t('CAPTAIN_SETTINGS.TITLE')"
         :description="t('CAPTAIN_SETTINGS.DESCRIPTION')"
-        :link-text="t('CAPTAIN_SETTINGS.LINK_TEXT')"
-        icon-name="captain"
-        feature-name="captain_billing"
       />
     </template>
     <template #body>
-      <div v-if="captainEnabled" class="flex flex-col gap-1">
-        <!-- Model Configuration Section -->
+      <div class="flex flex-col gap-1">
         <SectionLayout
-          :title="t('CAPTAIN_SETTINGS.MODEL_CONFIG.TITLE')"
-          :description="t('CAPTAIN_SETTINGS.MODEL_CONFIG.DESCRIPTION')"
+          :title="t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.TITLE')"
+          :description="t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.DESCRIPTION')"
         >
-          <div class="grid gap-4">
-            <ModelSelector
-              v-for="feature in modelFeatures"
-              v-show="shouldShowFeature(feature)"
-              :key="feature.key"
-              :is-allowed="isFeatureAccessible(feature)"
-              :feature-key="feature.key"
-              :title="feature.title"
-              :description="feature.description"
-              @change="handleModelChange"
-            />
-          </div>
-        </SectionLayout>
+          <form
+            class="grid gap-5"
+            @submit.prevent="handleExternalAssistantSubmit"
+          >
+            <div class="flex items-start justify-between gap-4">
+              <div class="min-w-0">
+                <h5 class="text-heading-3 text-n-slate-12">
+                  {{ t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.ENABLED.TITLE') }}
+                </h5>
+                <p class="mt-1 mb-0 text-body-small text-n-slate-11">
+                  {{
+                    t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.ENABLED.DESCRIPTION')
+                  }}
+                </p>
+              </div>
+              <Switch v-model="externalAssistantForm.enabled" />
+            </div>
 
-        <!-- Features Section -->
-        <SectionLayout
-          :title="t('CAPTAIN_SETTINGS.FEATURES.TITLE')"
-          :description="t('CAPTAIN_SETTINGS.FEATURES.DESCRIPTION')"
-          with-border
-        >
-          <div class="grid gap-4">
-            <FeatureToggle
-              v-for="feature in featureToggles"
-              v-show="shouldShowFeature(feature)"
-              :key="feature.key"
-              :is-allowed="isFeatureAccessible(feature)"
-              :feature-key="feature.key"
-              @change="handleFeatureToggle"
-              @model-change="handleModelChange"
+            <div class="grid gap-4 md:grid-cols-2">
+              <Input
+                v-model="externalAssistantForm.service_url"
+                :label="t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.SERVICE_URL')"
+                :placeholder="
+                  t(
+                    'CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.SERVICE_URL_PLACEHOLDER'
+                  )
+                "
+              />
+              <Input
+                v-model="externalAssistantForm.assistant_id"
+                :label="t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.ASSISTANT_ID')"
+                :placeholder="
+                  t(
+                    'CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.ASSISTANT_ID_PLACEHOLDER'
+                  )
+                "
+              />
+            </div>
+
+            <Input
+              v-model="externalAssistantForm.access_token"
+              type="password"
+              :label="t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.ACCESS_TOKEN')"
+              :placeholder="
+                externalAssistant.access_token_configured
+                  ? t(
+                      'CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.ACCESS_TOKEN_CONFIGURED'
+                    )
+                  : t(
+                      'CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.ACCESS_TOKEN_PLACEHOLDER'
+                    )
+              "
+              :message="
+                externalAssistant.access_token_configured
+                  ? t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.ACCESS_TOKEN_HELP')
+                  : ''
+              "
             />
-          </div>
+
+            <div class="grid gap-3">
+              <p class="mb-0 text-heading-3 text-n-slate-12">
+                {{ t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.CONTEXT.TITLE') }}
+              </p>
+              <label
+                v-for="option in externalAssistantContextOptions"
+                :key="option.key"
+                class="flex items-center gap-3 text-sm text-n-slate-12"
+              >
+                <Checkbox
+                  v-model="externalAssistantForm.settings[option.key]"
+                />
+                <span>{{ option.label }}</span>
+              </label>
+            </div>
+
+            <div class="flex justify-end">
+              <Button
+                type="submit"
+                :label="t('CAPTAIN_SETTINGS.EXTERNAL_ASSISTANT.SAVE')"
+                :is-loading="isSavingExternalAssistant"
+                :disabled="isSavingExternalAssistant"
+              />
+            </div>
+          </form>
         </SectionLayout>
-      </div>
-      <div v-else>
-        <CaptainPaywall />
       </div>
     </template>
   </SettingsLayout>

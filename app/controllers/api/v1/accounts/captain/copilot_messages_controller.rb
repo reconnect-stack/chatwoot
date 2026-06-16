@@ -1,25 +1,12 @@
 class Api::V1::Accounts::Captain::CopilotMessagesController < Api::V1::Accounts::BaseController
-  before_action :set_copilot_thread, unless: :external_assistant_enabled?
+  before_action :ensure_message, only: :create
 
   def index
-    return render json: { payload: [], meta: { total_count: 0, page: 1 } } if external_assistant_enabled?
-
-    @copilot_messages = @copilot_thread
-                        .copilot_messages
-                        .includes(:copilot_thread)
-                        .order(created_at: :asc)
-                        .page(permitted_params[:page] || 1)
-                        .per(1000)
+    render json: { payload: [], meta: { total_count: 0, page: 1 } }
   end
 
   def create
-    return render json: external_message_response if external_assistant_enabled?
-
-    @copilot_message = @copilot_thread.copilot_messages.create!(
-      message: { content: params[:message] },
-      message_type: :user
-    )
-    @copilot_message.enqueue_response_job(params[:conversation_id], Current.user.id)
+    render json: external_message_response
   rescue Captain::ExternalAssistant::Error => e
     render_could_not_create_error(e.message)
   end
@@ -28,10 +15,10 @@ class Api::V1::Accounts::Captain::CopilotMessagesController < Api::V1::Accounts:
 
   def external_message_response
     assistant_response = external_assistant_client.perform
-    thread = external_copilot_thread_payload
+    thread = copilot_thread_payload
 
-    external_copilot_message_payload(thread, assistant_response[:content], 'assistant').merge(
-      user_message: external_copilot_message_payload(thread, copilot_message_params[:message], 'user', id_offset: -1)
+    copilot_message_payload(thread, assistant_response[:content], 'assistant').merge(
+      user_message: copilot_message_payload(thread, copilot_message_params[:message], 'user', id_offset: -1)
     )
   end
 
@@ -47,7 +34,7 @@ class Api::V1::Accounts::Captain::CopilotMessagesController < Api::V1::Accounts:
     )
   end
 
-  def external_copilot_thread_payload
+  def copilot_thread_payload
     {
       id: params[:copilot_thread_id],
       title: copilot_message_params[:message],
@@ -58,7 +45,7 @@ class Api::V1::Accounts::Captain::CopilotMessagesController < Api::V1::Accounts:
     }
   end
 
-  def external_copilot_message_payload(thread, content, message_type, id_offset: 0)
+  def copilot_message_payload(thread, content, message_type, id_offset: 0)
     {
       id: ((Time.current.to_f * 1000).to_i + id_offset),
       message: { content: content },
@@ -76,23 +63,15 @@ class Api::V1::Accounts::Captain::CopilotMessagesController < Api::V1::Accounts:
     }
   end
 
-  def external_assistant_enabled?
-    external_assistant_config&.enabled? && external_assistant_config.service_url.present?
-  end
-
   def external_assistant_config
     @external_assistant_config ||= Current.account.captain_external_assistant_config
+    return @external_assistant_config if @external_assistant_config&.enabled?
+
+    raise Captain::ExternalAssistant::Error, 'External assistant is not configured'
   end
 
-  def set_copilot_thread
-    @copilot_thread = Current.account.copilot_threads.find_by!(
-      id: params[:copilot_thread_id],
-      user: Current.user
-    )
-  end
-
-  def permitted_params
-    params.permit(:page)
+  def ensure_message
+    return render_could_not_create_error(I18n.t('captain.copilot_message_required')) if copilot_message_params[:message].blank?
   end
 
   def copilot_message_params

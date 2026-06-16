@@ -1,15 +1,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import { useAlert } from 'dashboard/composables';
 import { useStore } from 'dashboard/composables/store';
 import Copilot from 'dashboard/components-next/copilot/Copilot.vue';
 import { useMapGetter } from 'dashboard/composables/store';
 import { useUISettings } from 'dashboard/composables/useUISettings';
-import { useConfig } from 'dashboard/composables/useConfig';
 import { useWindowSize } from '@vueuse/core';
 import { vOnClickOutside } from '@vueuse/components';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 import wootConstants from 'dashboard/constants/globals';
+import { useCaptainConfigStore } from 'dashboard/store/captain/preferences';
 
 defineProps({
   conversationInboxType: {
@@ -19,8 +20,9 @@ defineProps({
 });
 
 const store = useStore();
+const captainConfigStore = useCaptainConfigStore();
+const { externalAssistant } = storeToRefs(captainConfigStore);
 const { uiSettings, updateUISettings } = useUISettings();
-const { isEnterprise } = useConfig();
 const { width: windowWidth } = useWindowSize();
 
 const currentUser = useMapGetter('getCurrentUser');
@@ -47,25 +49,56 @@ const isFeatureEnabledonAccount = useMapGetter(
 
 const selectedAssistantId = ref(null);
 
+const captainAssistantManagementEnabled = computed(() =>
+  isFeatureEnabledonAccount.value(currentAccountId.value, FEATURE_FLAGS.CAPTAIN)
+);
+
+const externalAssistantEnabled = computed(
+  () =>
+    externalAssistant.value?.enabled === true &&
+    !!externalAssistant.value?.service_url
+);
+
+const externalAssistantRecord = computed(() => ({
+  id: externalAssistant.value?.assistant_id || 'external-assistant',
+  name: externalAssistant.value?.assistant_id || 'External assistant',
+}));
+
+const copilotAssistants = computed(() => {
+  if (captainAssistantManagementEnabled.value) {
+    return assistants.value;
+  }
+
+  return externalAssistantEnabled.value ? [externalAssistantRecord.value] : [];
+});
+
+const copilotAvailable = computed(
+  () =>
+    captainAssistantManagementEnabled.value || externalAssistantEnabled.value
+);
+
 const activeAssistant = computed(() => {
   const preferredId = uiSettings.value.preferred_captain_assistant_id;
+  const availableAssistants = copilotAssistants.value;
 
   // If the user has selected a specific assistant, it takes first preference for Copilot.
   if (preferredId) {
-    const preferredAssistant = assistants.value.find(a => a.id === preferredId);
+    const preferredAssistant = availableAssistants.find(
+      a => a.id === preferredId
+    );
     // Return the preferred assistant if found, otherwise continue to next cases
     if (preferredAssistant) return preferredAssistant;
   }
 
   // If the above is not available, the assistant connected to the inbox takes preference.
   if (inboxAssistant.value) {
-    const inboxMatchedAssistant = assistants.value.find(
+    const inboxMatchedAssistant = availableAssistants.find(
       a => a.id === inboxAssistant.value.id
     );
     if (inboxMatchedAssistant) return inboxMatchedAssistant;
   }
   // If neither of the above is available, the first assistant in the account takes preference.
-  return assistants.value[0];
+  return availableAssistants[0] || {};
 });
 
 const closeCopilotPanel = () => {
@@ -85,30 +118,43 @@ const setAssistant = async assistant => {
 };
 
 const shouldShowCopilotPanel = computed(() => {
-  if (!isEnterprise) {
-    return false;
-  }
-  const isCaptainEnabled = isFeatureEnabledonAccount.value(
-    currentAccountId.value,
-    FEATURE_FLAGS.CAPTAIN
-  );
   const { is_copilot_panel_open: isCopilotPanelOpen } = uiSettings.value;
-  return isCaptainEnabled && isCopilotPanelOpen && !uiFlags.value.fetchingList;
+  return (
+    copilotAvailable.value && isCopilotPanelOpen && !uiFlags.value.fetchingList
+  );
 });
 
 const handleReset = () => {
   selectedCopilotThreadId.value = null;
 };
 
+const buildCopilotHistory = () =>
+  messages.value.map(copilotMessage => ({
+    role: copilotMessage.message_type,
+    content: copilotMessage.message?.content || '',
+  }));
+
+const upsertExternalMessages = response => {
+  if (response.user_message) {
+    store.dispatch('copilotMessages/upsert', response.user_message);
+  }
+
+  response.messages?.forEach(copilotMessage => {
+    store.dispatch('copilotMessages/upsert', copilotMessage);
+  });
+};
+
 const sendMessage = async message => {
   try {
     if (selectedCopilotThreadId.value) {
-      await store.dispatch('copilotMessages/create', {
+      const response = await store.dispatch('copilotMessages/create', {
         assistant_id: activeAssistant.value.id,
         conversation_id: currentChat.value?.id,
         threadId: selectedCopilotThreadId.value,
         message,
+        history: buildCopilotHistory(),
       });
+      upsertExternalMessages(response);
     } else {
       const response = await store.dispatch('copilotThreads/create', {
         assistant_id: activeAssistant.value.id,
@@ -116,6 +162,7 @@ const sendMessage = async message => {
         message,
       });
       selectedCopilotThreadId.value = response.id;
+      upsertExternalMessages(response);
     }
   } catch (error) {
     useAlert(error.message);
@@ -123,7 +170,9 @@ const sendMessage = async message => {
 };
 
 onMounted(() => {
-  if (isEnterprise) {
+  captainConfigStore.fetch();
+
+  if (captainAssistantManagementEnabled.value) {
     store.dispatch('captainAssistants/get');
   }
 });
@@ -145,7 +194,7 @@ onMounted(() => {
       :messages="messages"
       :support-agent="currentUser"
       :conversation-inbox-type="conversationInboxType"
-      :assistants="assistants"
+      :assistants="copilotAssistants"
       :active-assistant="activeAssistant"
       @set-assistant="setAssistant"
       @send-message="sendMessage"

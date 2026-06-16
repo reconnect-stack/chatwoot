@@ -1,4 +1,5 @@
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
+import { storeToRefs } from 'pinia';
 import {
   useFunctionGetter,
   useMapGetter,
@@ -12,12 +13,15 @@ import { useI18n } from 'vue-i18n';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 import TasksAPI from 'dashboard/api/captain/tasks';
 import { CAPTAIN_ERROR_TYPES } from 'dashboard/composables/captain/constants';
+import { useCaptainConfigStore } from 'dashboard/store/captain/preferences';
 
 export function useCaptain() {
   const store = useStore();
   const { t } = useI18n();
   const { isCloudFeatureEnabled, currentAccount } = useAccount();
   const { isEnterprise } = useConfig();
+  const captainConfigStore = useCaptainConfigStore();
+  const { externalAssistant } = storeToRefs(captainConfigStore);
   const uiFlags = useMapGetter('accounts/getUIFlags');
   const currentChat = useMapGetter('getSelectedChat');
   const replyMode = useMapGetter('draftMessages/getReplyEditorMode');
@@ -28,12 +32,25 @@ export function useCaptain() {
   const draftMessage = useFunctionGetter('draftMessages/get', draftKey);
 
   // === Feature Flags ===
+  const externalAssistantEnabled = computed(
+    () =>
+      externalAssistant.value?.enabled === true &&
+      !!externalAssistant.value?.service_url
+  );
+
   const captainEnabled = computed(() => {
-    return isCloudFeatureEnabled(FEATURE_FLAGS.CAPTAIN);
+    return (
+      isCloudFeatureEnabled(FEATURE_FLAGS.CAPTAIN) ||
+      isCloudFeatureEnabled(FEATURE_FLAGS.CAPTAIN_TASKS) ||
+      externalAssistantEnabled.value
+    );
   });
 
   const captainTasksEnabled = computed(() => {
-    return isCloudFeatureEnabled(FEATURE_FLAGS.CAPTAIN_TASKS);
+    return (
+      isCloudFeatureEnabled(FEATURE_FLAGS.CAPTAIN_TASKS) ||
+      externalAssistantEnabled.value
+    );
   });
 
   // === Limits (Enterprise) ===
@@ -219,6 +236,10 @@ export function useCaptain() {
     // All other types are rewrite operations
     return rewriteContent(content, type, options);
   };
+
+  onMounted(() => {
+    captainConfigStore.fetch();
+  });
 
   return {
     // Feature flags

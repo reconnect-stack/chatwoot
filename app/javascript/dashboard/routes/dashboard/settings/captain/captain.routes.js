@@ -1,5 +1,4 @@
 import { frontendURL } from '../../../../helper/URLHelper';
-import { FEATURE_FLAGS } from 'dashboard/featureFlags';
 import { INSTALLATION_TYPES } from 'dashboard/constants/installationTypes';
 import SettingsWrapper from '../SettingsWrapper.vue';
 import Index from './Index.vue';
@@ -10,7 +9,11 @@ export default {
       path: frontendURL('accounts/:accountId/settings/captain'),
       meta: {
         permissions: ['administrator'],
-        featureFlag: FEATURE_FLAGS.CAPTAIN,
+        installationTypes: [
+          INSTALLATION_TYPES.COMMUNITY,
+          INSTALLATION_TYPES.ENTERPRISE,
+          INSTALLATION_TYPES.CLOUD,
+        ],
       },
       component: SettingsWrapper,
       props: {
@@ -25,8 +28,8 @@ export default {
           component: Index,
           meta: {
             permissions: ['administrator'],
-            featureFlag: FEATURE_FLAGS.CAPTAIN,
             installationTypes: [
+              INSTALLATION_TYPES.COMMUNITY,
               INSTALLATION_TYPES.ENTERPRISE,
               INSTALLATION_TYPES.CLOUD,
             ],

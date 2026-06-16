@@ -1,7 +1,9 @@
 import { computed, onMounted } from 'vue';
-import { useMapGetter, useStore } from 'dashboard/composables/store';
+import { storeToRefs } from 'pinia';
+import { useMapGetter } from 'dashboard/composables/store';
 import { useAccount } from 'dashboard/composables/useAccount';
 import { FEATURE_FLAGS } from 'dashboard/featureFlags';
+import { useCaptainConfigStore } from 'dashboard/store/captain/preferences';
 import TasksAPI from 'dashboard/api/captain/tasks';
 
 /**
@@ -19,36 +21,31 @@ const cleanLabels = labels => {
 };
 
 export function useLabelSuggestions() {
-  const store = useStore();
   const { isCloudFeatureEnabled } = useAccount();
-  const appIntegrations = useMapGetter('integrations/getAppIntegrations');
   const currentChat = useMapGetter('getSelectedChat');
+  const captainConfigStore = useCaptainConfigStore();
+  const { externalAssistant, features } = storeToRefs(captainConfigStore);
   const conversationId = computed(() => currentChat.value?.id);
 
-  const captainTasksEnabled = computed(() => {
-    return isCloudFeatureEnabled(FEATURE_FLAGS.CAPTAIN_TASKS);
-  });
-
-  const aiIntegration = computed(
+  const externalAssistantEnabled = computed(
     () =>
-      appIntegrations.value.find(
-        integration => integration.id === 'openai' && !!integration.hooks.length
-      )?.hooks[0]
+      externalAssistant.value?.enabled === true &&
+      !!externalAssistant.value?.service_url
   );
 
-  const isLabelSuggestionFeatureEnabled = computed(() => {
-    if (aiIntegration.value) {
-      const { settings = {} } = aiIntegration.value || {};
-      return !!settings.label_suggestion;
-    }
-    return false;
+  const captainTasksEnabled = computed(() => {
+    return (
+      isCloudFeatureEnabled(FEATURE_FLAGS.CAPTAIN_TASKS) ||
+      externalAssistantEnabled.value
+    );
   });
 
-  const fetchIntegrationsIfRequired = async () => {
-    if (!appIntegrations.value.length) {
-      await store.dispatch('integrations/get');
-    }
-  };
+  const isLabelSuggestionFeatureEnabled = computed(() => {
+    return (
+      externalAssistantEnabled.value ||
+      features.value.label_suggestion?.enabled === true
+    );
+  });
 
   /**
    * Gets label suggestions for the current conversation.
@@ -69,7 +66,7 @@ export function useLabelSuggestions() {
   };
 
   onMounted(() => {
-    fetchIntegrationsIfRequired();
+    captainConfigStore.fetch();
   });
 
   return {
