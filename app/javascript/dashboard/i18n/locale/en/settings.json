@@ -311,7 +311,7 @@
     "ACTIVE": "Active",
     "COMPANIES": "Companies",
     "ALL_COMPANIES": "All Companies",
-    "CAPTAIN": "Captain",
+    "CAPTAIN": "Assistant",
     "CAPTAIN_ASSISTANTS": "Assistants",
     "CAPTAIN_DOCUMENTS": "Documents",
     "CAPTAIN_RESPONSES": "FAQs",
@@ -381,55 +381,41 @@
     },
     "DOCS": "Read docs",
     "SECURITY": "Security",
-    "CAPTAIN_AI": "Captain",
+    "CAPTAIN_AI": "Assistant",
     "CONVERSATION_WORKFLOW": "Conversation Workflow"
   },
   "CAPTAIN_SETTINGS": {
-    "TITLE": "Captain Settings",
-    "DESCRIPTION": "Configure your AI models and features for Captain. Captain follows a credit based billing, you will be charged credits for every action Captain takes based on the model selected.",
-    "LOADING": "Loading Captain configuration...",
-    "LINK_TEXT": "Learn more about Captain Credits",
-    "NOT_ENABLED": "Captain is not enabled for your account. Please upgrade your plan to access Captain features.",
-    "MODEL_CONFIG": {
-      "TITLE": "Model Configuration",
-      "DESCRIPTION": "Select AI models for different features.",
-      "SELECT_MODEL": "Select model",
-      "CREDITS_PER_MESSAGE": "{credits} credit/message",
-      "COMING_SOON": "Coming soon",
-      "EDITOR": {
-        "TITLE": "Editor Features",
-        "DESCRIPTION": "Powers smart compose, grammar corrections, tone adjustments, and content enhancement in your message editor."
+    "TITLE": "Assistant",
+    "DESCRIPTION": "Configure the external assistant service used by AI editor and Copilot features.",
+    "LOADING": "Loading assistant configuration...",
+    "LINK_TEXT": "Learn more",
+    "NOT_ENABLED": "Assistant is not enabled for your account.",
+    "EXTERNAL_ASSISTANT": {
+      "TITLE": "Configuration",
+      "DESCRIPTION": "Route AI editor and Copilot requests through an external assistant service.",
+      "ENABLED": {
+        "TITLE": "Use external assistant service",
+        "DESCRIPTION": "The backend will keep the service URL and token, then send assistant requests to this service."
       },
-      "ASSISTANT": {
-        "TITLE": "Assistant",
-        "DESCRIPTION": "Handles automated responses, conversation summaries, and intelligent reply suggestions for customer interactions."
+      "SERVICE_URL": "Service URL",
+      "SERVICE_URL_PLACEHOLDER": "https://assistant.example.com",
+      "ASSISTANT_ID": "Assistant ID",
+      "ASSISTANT_ID_PLACEHOLDER": "support-copilot",
+      "ACCESS_TOKEN": "Access token",
+      "ACCESS_TOKEN_PLACEHOLDER": "Enter a bearer token",
+      "ACCESS_TOKEN_CONFIGURED": "Token is already configured",
+      "ACCESS_TOKEN_HELP": "Leave blank to keep the current token.",
+      "CONTEXT": {
+        "TITLE": "Context to send",
+        "CONVERSATION": "Conversation messages and metadata",
+        "CONTACT": "Contact details and custom attributes",
+        "PRIVATE_NOTES": "Private notes"
       },
-      "COPILOT": {
-        "TITLE": "Co-pilot",
-        "DESCRIPTION": "Provides real-time contextual suggestions, knowledge base recommendations, and proactive insights during conversations."
-      }
-    },
-    "FEATURES": {
-      "TITLE": "Features",
-      "DESCRIPTION": "Enable or disable AI-powered features.",
-      "AUDIO_TRANSCRIPTION": {
-        "TITLE": "Audio Transcription",
-        "DESCRIPTION": "Automatically convert voice messages and call recordings into searchable text transcripts."
-      },
-      "HELP_CENTER_SEARCH": {
-        "TITLE": "Help Center Search Indexing",
-        "DESCRIPTION": "Use AI for context aware search inside your help center articles."
-      },
-      "LABEL_SUGGESTION": {
-        "TITLE": "Label Suggestion",
-        "DESCRIPTION": "Automatically suggest relevant labels and tags for conversations based on content analysis and context.",
-        "MODEL_TITLE": "Label Suggestion Model",
-        "MODEL_DESCRIPTION": "Select the AI model to use for analyzing conversations and suggesting appropriate labels"
-      }
+      "SAVE": "Save assistant"
     },
     "API": {
-      "SUCCESS": "Captain settings updated successfully.",
-      "ERROR": "Failed to update Captain settings. Please try again."
+      "SUCCESS": "Assistant settings updated successfully.",
+      "ERROR": "Failed to update assistant settings. Please try again."
     }
   },
   "BILLING_SETTINGS": {
@@ -448,12 +434,12 @@
       "BUTTON_TXT": "Go to the billing portal"
     },
     "CAPTAIN": {
-      "TITLE": "Captain",
-      "DESCRIPTION": "Manage usage and credits for Captain AI.",
+      "TITLE": "Assistant",
+      "DESCRIPTION": "Manage usage and credits for AI features.",
       "BUTTON_TXT": "Buy more credits",
       "DOCUMENTS": "Documents",
       "RESPONSES": "Credits",
-      "UPGRADE": "Captain is not available on the free plan, upgrade now to get access to assistants, copilot and more.",
+      "UPGRADE": "Assistant is not available on the free plan, upgrade now to get access to assistants, copilot and more.",
       "REFRESH_CREDITS": "Refresh"
     },
     "CHAT_WITH_US": {
@@ -465,7 +451,7 @@
     "TOPUP": {
       "BUY_CREDITS": "Buy more credits",
       "MODAL_TITLE": "Buy AI Credits",
-      "MODAL_DESCRIPTION": "Purchase additional credits for Captain AI.",
+      "MODAL_DESCRIPTION": "Purchase additional AI credits.",
       "CREDITS": "CREDITS",
       "ONE_TIME": "one-time",
       "POPULAR": "Most Popular",

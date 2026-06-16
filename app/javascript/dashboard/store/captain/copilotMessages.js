@@ -7,7 +7,10 @@ export default createStore({
   getters: {
     getMessagesByThreadId: state => copilotThreadId => {
       return state.records
-        .filter(record => record.copilot_thread?.id === Number(copilotThreadId))
+        .filter(
+          record =>
+            String(record.copilot_thread?.id) === String(copilotThreadId)
+        )
         .sort((a, b) => a.id - b.id);
     },
   },

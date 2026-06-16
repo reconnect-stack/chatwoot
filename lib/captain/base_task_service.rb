@@ -40,6 +40,7 @@ class Captain::BaseTaskService
   def make_api_call(model:, messages:, schema: nil, tools: [])
     # Community edition prerequisite checks
     # Enterprise module handles these with more specific error messages (cloud vs self-hosted)
+    return make_external_assistant_call(messages) if external_assistant_enabled?
     return { error: I18n.t('captain.disabled'), error_code: 403 } unless captain_tasks_enabled?
     return { error: I18n.t('captain.api_key_missing'), error_code: 401 } unless api_key_configured?
 
@@ -53,6 +54,26 @@ class Captain::BaseTaskService
     return response unless build_follow_up_context? && response[:message].present?
 
     response.merge(follow_up_context: build_follow_up_context(messages, response))
+  end
+
+  def make_external_assistant_call(messages)
+    response = Captain::ExternalAssistant::Client.new(
+      account: account,
+      user: external_assistant_user,
+      config: external_assistant_config,
+      message: messages.reverse.find { |message| message[:role] == 'user' }&.dig(:content),
+      conversation_id: conversation_display_id,
+      thread_id: nil,
+      feature_name: event_name,
+      messages: messages
+    ).perform
+
+    result = { message: response[:content], request_messages: messages }
+    return result unless build_follow_up_context? && result[:message].present?
+
+    result.merge(follow_up_context: build_follow_up_context(messages, result))
+  rescue Captain::ExternalAssistant::Error => e
+    { error: e.message, request_messages: messages }
   end
 
   def execute_ruby_llm_request(model:, messages:, schema: nil, tools: [])
@@ -160,6 +181,18 @@ class Captain::BaseTaskService
 
   def api_key_configured?
     llm_credential.present?
+  end
+
+  def external_assistant_enabled?
+    external_assistant_config&.enabled? && external_assistant_config.service_url.present?
+  end
+
+  def external_assistant_config
+    @external_assistant_config ||= account.captain_external_assistant_config
+  end
+
+  def external_assistant_user
+    respond_to?(:user) ? user : Current.user
   end
 
   def api_key

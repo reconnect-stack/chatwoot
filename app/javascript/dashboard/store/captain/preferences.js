@@ -6,6 +6,7 @@ export const useCaptainConfigStore = defineStore('captainConfig', {
     providers: {},
     models: {},
     features: {},
+    externalAssistant: {},
     uiFlags: {
       isFetching: false,
     },
@@ -15,6 +16,7 @@ export const useCaptainConfigStore = defineStore('captainConfig', {
     getProviders: state => state.providers,
     getModels: state => state.models,
     getFeatures: state => state.features,
+    getExternalAssistant: state => state.externalAssistant,
     getUIFlags: state => state.uiFlags,
     getModelsForFeature: state => featureKey => {
       const feature = state.features[featureKey];
@@ -54,6 +56,7 @@ export const useCaptainConfigStore = defineStore('captainConfig', {
         this.providers = response.data.providers || {};
         this.models = response.data.models || {};
         this.features = response.data.features || {};
+        this.externalAssistant = response.data.external_assistant || {};
       } catch (error) {
         // Ignore error
       } finally {
@@ -66,6 +69,7 @@ export const useCaptainConfigStore = defineStore('captainConfig', {
       this.providers = response.data.providers || {};
       this.models = response.data.models || {};
       this.features = response.data.features || {};
+      this.externalAssistant = response.data.external_assistant || {};
     },
   },
 });

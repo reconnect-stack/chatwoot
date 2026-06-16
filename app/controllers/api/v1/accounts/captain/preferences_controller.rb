@@ -11,6 +11,7 @@ class Api::V1::Accounts::Captain::PreferencesController < Api::V1::Accounts::Bas
     @current_account.captain_models = params_to_update[:captain_models] if params_to_update[:captain_models]
     @current_account.captain_features = params_to_update[:captain_features] if params_to_update[:captain_features]
     @current_account.save!
+    update_external_assistant_config if params[:external_assistant].present?
 
     render json: preferences_payload
   end
@@ -21,7 +22,8 @@ class Api::V1::Accounts::Captain::PreferencesController < Api::V1::Accounts::Bas
     {
       providers: Llm::Models.providers,
       models: Llm::Models.models,
-      features: features_with_account_preferences
+      features: features_with_account_preferences,
+      external_assistant: external_assistant_payload
     }
   end
 
@@ -58,6 +60,48 @@ class Api::V1::Accounts::Captain::PreferencesController < Api::V1::Accounts::Bas
       :editor, :assistant, :copilot, :label_suggestion,
       :audio_transcription, :help_center_search
     ).to_h.stringify_keys
+  end
+
+  def permitted_external_assistant_config
+    params.require(:external_assistant).permit(
+      :enabled, :service_url, :assistant_id, :access_token,
+      settings: [:send_conversation_context, :send_contact_details, :send_private_notes]
+    ).to_h
+  end
+
+  def update_external_assistant_config
+    config = @current_account.captain_external_assistant_config || @current_account.build_captain_external_assistant_config
+    permitted_config = permitted_external_assistant_config
+    settings = permitted_config.delete('settings')
+    access_token = permitted_config.delete('access_token')
+
+    config.assign_attributes(permitted_config)
+    config.access_token = access_token if access_token.present?
+    config.settings = config.settings_with_defaults.merge(settings) if settings.present?
+    config.save!
+  end
+
+  def external_assistant_payload
+    config = @current_account.captain_external_assistant_config
+    return default_external_assistant_payload if config.blank?
+
+    {
+      enabled: config.enabled,
+      service_url: config.service_url,
+      assistant_id: config.assistant_id,
+      access_token_configured: config.access_token.present?,
+      settings: config.settings_with_defaults
+    }
+  end
+
+  def default_external_assistant_payload
+    {
+      enabled: false,
+      service_url: nil,
+      assistant_id: nil,
+      access_token_configured: false,
+      settings: Captain::ExternalAssistantConfig::DEFAULT_SETTINGS
+    }
   end
 
   def features_with_account_preferences
