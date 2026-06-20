@@ -18,5 +18,11 @@ export default createStore({
     upsert({ commit }, data) {
       commit(mutationTypes.UPSERT, data);
     },
+    sendFeedback(_, params) {
+      return CopilotMessagesAPI.sendFeedback(params);
+    },
+    removeFeedback(_, params) {
+      return CopilotMessagesAPI.removeFeedback(params);
+    },
   }),
 });

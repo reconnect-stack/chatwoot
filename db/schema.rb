@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.1].define(version: 2026_06_16_090000) do
+ActiveRecord::Schema[7.1].define(version: 2026_06_16_100000) do
   # These extensions should be enabled to support this database
   enable_extension "pg_stat_statements"
   enable_extension "pg_trgm"
@@ -349,6 +349,22 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_16_090000) do
     t.index ["account_id"], name: "index_captain_assistants_on_account_id"
   end
 
+  create_table "captain_copilot_message_feedbacks", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.bigint "user_id", null: false
+    t.string "copilot_thread_id", null: false
+    t.string "copilot_message_id", null: false
+    t.string "trace_id"
+    t.string "rating", null: false
+    t.bigint "conversation_id"
+    t.string "assistant_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "copilot_thread_id", "copilot_message_id", "user_id"], name: "index_copilot_message_feedbacks_on_scope", unique: true
+    t.index ["account_id"], name: "index_captain_copilot_message_feedbacks_on_account_id"
+    t.index ["user_id"], name: "index_captain_copilot_message_feedbacks_on_user_id"
+  end
+
   create_table "captain_custom_tools", force: :cascade do |t|
     t.bigint "account_id", null: false
     t.string "slug", null: false
@@ -442,6 +458,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_16_090000) do
     t.bigint "parent_category_id"
     t.bigint "associated_category_id"
     t.string "icon", default: ""
+    t.string "icon_color", default: ""
     t.index ["associated_category_id"], name: "index_categories_on_associated_category_id"
     t.index ["locale", "account_id"], name: "index_categories_on_locale_and_account_id"
     t.index ["locale"], name: "index_categories_on_locale"
@@ -571,6 +588,7 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_16_090000) do
     t.boolean "voice_enabled", default: false, null: false
     t.string "twiml_app_sid"
     t.string "api_key_secret"
+    t.jsonb "provider_config", default: {}
     t.index ["account_sid", "phone_number"], name: "index_channel_twilio_sms_on_account_sid_and_phone_number", unique: true
     t.index ["messaging_service_sid"], name: "index_channel_twilio_sms_on_messaging_service_sid", unique: true
     t.index ["phone_number"], name: "index_channel_twilio_sms_on_phone_number", unique: true
@@ -1266,6 +1284,26 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_16_090000) do
     t.index ["name", "account_id"], name: "index_teams_on_name_and_account_id", unique: true
   end
 
+  create_table "user_sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "client_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.string "browser_name"
+    t.string "browser_version"
+    t.string "device_name"
+    t.string "platform_name"
+    t.string "platform_version"
+    t.string "city"
+    t.string "country"
+    t.string "country_code"
+    t.datetime "last_activity_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "client_id"], name: "index_user_sessions_on_user_id_and_client_id", unique: true
+    t.index ["user_id"], name: "index_user_sessions_on_user_id"
+  end
+
   create_table "users", id: :serial, force: :cascade do |t|
     t.string "provider", default: "email", null: false
     t.string "uid", default: "", null: false
@@ -1337,8 +1375,11 @@ ActiveRecord::Schema[7.1].define(version: 2026_06_16_090000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "captain_copilot_message_feedbacks", "accounts"
+  add_foreign_key "captain_copilot_message_feedbacks", "users"
   add_foreign_key "captain_external_assistant_configs", "accounts"
   add_foreign_key "inboxes", "portals"
+  add_foreign_key "user_sessions", "users"
   create_trigger("accounts_after_insert_row_tr", :generated => true, :compatibility => 1).
       on("accounts").
       after(:insert).

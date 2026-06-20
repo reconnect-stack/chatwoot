@@ -117,6 +117,7 @@ export const COPILOT_EVENTS = Object.freeze({
   SEND_SUGGESTED: 'Copilot: Send suggested message',
   SEND_MESSAGE: 'Copilot: Sent a message',
   USE_CAPTAIN_RESPONSE: 'Copilot: Used captain response',
+  RATE_CAPTAIN_RESPONSE: 'Copilot: Rated captain response',
 });
 
 export const SNOOZE_EVENTS = Object.freeze({
