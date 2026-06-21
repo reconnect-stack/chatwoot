@@ -17,7 +17,7 @@ class Api::V1::Accounts::Captain::CopilotMessagesController < Api::V1::Accounts:
     assistant_response = external_assistant_client.perform
     thread = copilot_thread_payload
 
-    copilot_message_payload(thread, assistant_response[:content], 'assistant').merge(
+    copilot_message_payload(thread, assistant_response[:content], 'assistant', trace_id: assistant_response[:trace_id]).merge(
       user_message: copilot_message_payload(thread, copilot_message_params[:message], 'user', id_offset: -1)
     )
   end
@@ -45,10 +45,10 @@ class Api::V1::Accounts::Captain::CopilotMessagesController < Api::V1::Accounts:
     }
   end
 
-  def copilot_message_payload(thread, content, message_type, id_offset: 0)
+  def copilot_message_payload(thread, content, message_type, id_offset: 0, trace_id: nil)
     {
       id: ((Time.current.to_f * 1000).to_i + id_offset),
-      message: { content: content },
+      message: { content: content, trace_id: trace_id }.compact,
       message_type: message_type,
       created_at: Time.current.to_i,
       copilot_thread: thread,

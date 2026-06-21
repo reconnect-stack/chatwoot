@@ -31,6 +31,9 @@ class Captain::ExternalAssistantConfig < ApplicationRecord
     'send_private_notes' => false
   }.freeze
 
+  ASSISTANT_ENDPOINT_PATH = '/chatwoot/assistant'.freeze
+  FEEDBACK_ENDPOINT_PATH = '/feedback'.freeze
+
   belongs_to :account
 
   encrypts :access_token if Chatwoot.encryption_configured?
@@ -44,7 +47,24 @@ class Captain::ExternalAssistantConfig < ApplicationRecord
     DEFAULT_SETTINGS.merge(settings || {})
   end
 
+  def assistant_endpoint_url
+    endpoint_url(ASSISTANT_ENDPOINT_PATH)
+  end
+
+  def feedback_endpoint_url
+    endpoint_url(FEEDBACK_ENDPOINT_PATH)
+  end
+
   private
+
+  def endpoint_url(path)
+    return if service_url.blank?
+
+    uri = URI.parse(service_url)
+    origin = "#{uri.scheme}://#{uri.host}"
+    origin += ":#{uri.port}" if uri.port && [80, 443].exclude?(uri.port)
+    "#{origin}#{path}"
+  end
 
   def apply_default_settings
     self.settings = settings_with_defaults

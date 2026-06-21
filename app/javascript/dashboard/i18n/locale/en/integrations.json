@@ -409,6 +409,10 @@
       "YOU": "You",
       "USE": "Use this",
       "RESET": "Reset",
+      "FEEDBACK": {
+        "LIKE": "Good response",
+        "DISLIKE": "Bad response"
+      },
       "SHOW_STEPS": "Show steps",
       "SELECT_ASSISTANT": "Select Assistant",
       "PROMPTS": {

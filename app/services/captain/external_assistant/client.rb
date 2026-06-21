@@ -21,7 +21,7 @@ class Captain::ExternalAssistant::Client
 
   def perform
     response = HTTParty.post(
-      config.service_url,
+      config.assistant_endpoint_url,
       headers: headers,
       body: payload.to_json,
       timeout: 60
@@ -137,10 +137,11 @@ class Captain::ExternalAssistant::Client
 
     {
       content: body['content'] || body['answer'] || body['message'],
-      thread_id: body['thread_id'] || body['threadId'] || thread_id
+      thread_id: body['thread_id'] || body['threadId'] || thread_id,
+      trace_id: body['trace_id'] || body['traceId']
     }
   rescue JSON::ParserError
-    { content: response.body, thread_id: thread_id }
+    { content: response.body, thread_id: thread_id, trace_id: nil }
   end
 
   def send_conversation_context?

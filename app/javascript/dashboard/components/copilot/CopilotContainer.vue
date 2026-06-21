@@ -42,6 +42,14 @@ const messages = computed(() =>
   )
 );
 
+// Optimistic user message rendered immediately while awaiting the assistant reply.
+const pendingUserMessage = ref(null);
+const displayMessages = computed(() =>
+  pendingUserMessage.value
+    ? [...messages.value, pendingUserMessage.value]
+    : messages.value
+);
+
 const currentAccountId = useMapGetter('getCurrentAccountId');
 const isFeatureEnabledonAccount = useMapGetter(
   'accounts/isFeatureEnabledonAccount'
@@ -145,6 +153,11 @@ const upsertExternalMessages = response => {
 };
 
 const sendMessage = async message => {
+  pendingUserMessage.value = {
+    id: 'pending-user-message',
+    message_type: 'user',
+    message: { content: message },
+  };
   try {
     if (selectedCopilotThreadId.value) {
       const response = await store.dispatch('copilotMessages/create', {
@@ -163,6 +176,32 @@ const sendMessage = async message => {
       });
       selectedCopilotThreadId.value = response.id;
       upsertExternalMessages(response);
+    }
+  } catch (error) {
+    useAlert(error.message);
+  } finally {
+    pendingUserMessage.value = null;
+  }
+};
+
+const handleRate = async ({ messageId, threadId, traceId, rating }) => {
+  if (!messageId || !threadId) return;
+
+  try {
+    if (rating) {
+      await store.dispatch('copilotMessages/sendFeedback', {
+        threadId,
+        messageId,
+        rating,
+        traceId,
+        conversationId: currentChat.value?.id,
+        assistantId: activeAssistant.value.id,
+      });
+    } else {
+      await store.dispatch('copilotMessages/removeFeedback', {
+        threadId,
+        messageId,
+      });
     }
   } catch (error) {
     useAlert(error.message);
@@ -191,7 +230,7 @@ onMounted(() => {
     ]"
   >
     <Copilot
-      :messages="messages"
+      :messages="displayMessages"
       :support-agent="currentUser"
       :conversation-inbox-type="conversationInboxType"
       :assistants="copilotAssistants"
@@ -199,6 +238,7 @@ onMounted(() => {
       @set-assistant="setAssistant"
       @send-message="sendMessage"
       @reset="handleReset"
+      @rate="handleRate"
     />
   </div>
   <template v-else />

@@ -37,7 +37,7 @@ class Api::V1::Accounts::Captain::CopilotThreadsController < Api::V1::Accounts::
       **thread,
       messages: [
         copilot_message_payload(thread, copilot_thread_params[:message], 'user'),
-        copilot_message_payload(thread, assistant_response[:content], 'assistant')
+        copilot_message_payload(thread, assistant_response[:content], 'assistant', trace_id: assistant_response[:trace_id])
       ]
     }
   end
@@ -53,10 +53,10 @@ class Api::V1::Accounts::Captain::CopilotThreadsController < Api::V1::Accounts::
     }
   end
 
-  def copilot_message_payload(thread, content, message_type)
+  def copilot_message_payload(thread, content, message_type, trace_id: nil)
     {
       id: ((Time.current.to_f * 1000).to_i + (message_type == 'user' ? 1 : 2)),
-      message: { content: content },
+      message: { content: content, trace_id: trace_id }.compact,
       message_type: message_type,
       created_at: Time.current.to_i,
       copilot_thread: thread,

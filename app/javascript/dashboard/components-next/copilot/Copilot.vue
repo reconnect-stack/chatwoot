@@ -33,7 +33,7 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['sendMessage', 'reset', 'setAssistant']);
+const emit = defineEmits(['sendMessage', 'reset', 'setAssistant', 'rate']);
 
 const { t } = useI18n();
 
@@ -145,8 +145,11 @@ watch(
           <CopilotAssistantMessage
             v-else-if="item.message_type === 'assistant'"
             :message="item.message"
+            :message-id="item.id"
+            :thread-id="item.copilot_thread?.id"
             :is-last-message="index === groupedMessages.length - 1"
             :conversation-inbox-type="conversationInboxType"
+            @rate="$event => emit('rate', $event)"
           />
           <CopilotThinkingGroup
             v-else
